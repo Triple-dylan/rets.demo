@@ -20,6 +20,16 @@ const nextConfig = {
       },
     ];
   },
+  watchOptions: {
+    ignored: [
+      '**/node_modules',
+      '**/.git',
+      '**/Library/**',
+      '**/Library/Containers/**',
+      '**/Library/Application Support/**',
+      '**/tmp/**',
+    ],
+  },
 };
 
 module.exports = nextConfig;
