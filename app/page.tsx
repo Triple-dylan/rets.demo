@@ -302,13 +302,15 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-3">
-              <div className="w-7 h-7 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">R</span>
-              </div>
-              <span className="text-gray-900 font-semibold text-lg">RETS</span>
-              <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">v3</span>
+              <button className="w-6 h-6 flex flex-col justify-center items-center space-y-1 hover:bg-gray-100 rounded p-1 transition-colors">
+                <div className="w-4 h-0.5 bg-gray-600"></div>
+                <div className="w-4 h-0.5 bg-gray-600"></div>
+                <div className="w-4 h-0.5 bg-gray-600"></div>
+              </button>
+              <span className="text-gray-900 font-medium">RETS</span>
+              <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">v3</span>
             </div>
-            <button className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors">Light</button>
+            <button className="text-gray-600 hover:text-gray-900 text-sm">Light</button>
           </div>
         </div>
       </header>
@@ -318,70 +320,51 @@ export default function HomePage() {
         {/* Welcome Section - Centered */}
         {chatHistory.length === 0 && (
           <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)]">
-            <div className="text-center mb-12">
-              <h1 className="text-5xl font-bold text-gray-900 mb-4 leading-tight">
-                Who needs manual tasks?<br />Ask RETS instead.
+            <div className="text-center mb-16">
+              <h1 className="text-4xl font-bold text-gray-900 mb-16">
+                Who needs manual tasks? Ask RETS instead.
               </h1>
-              <p className="text-xl text-gray-600 mb-8">
-                Your AI-powered real estate assistant for property analysis and transactions
-              </p>
             </div>
             
-            <div className="w-full max-w-3xl mb-8">
-              <div className="relative">
-                <div className="flex items-center bg-white rounded-2xl shadow-lg border border-gray-200 px-6 py-4 hover:shadow-xl transition-shadow">
-                  <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mr-4 flex items-center justify-center">
-                    <span className="text-white text-xs">💬</span>
-                  </div>
-                  <input
-                    type="text"
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    onKeyDown={handleKeyPress}
-                    placeholder="Find me properties that fit my buy box in Seattle, $5-7M and a cap rate between 4-6%"
-                    className="flex-1 outline-none text-gray-800 placeholder-gray-500 text-lg"
-                  />
-                  <button
-                    onClick={sendMessage}
-                    disabled={loading || !message.trim()}
-                    className="w-10 h-10 bg-blue-600 text-white rounded-xl flex items-center justify-center hover:bg-blue-700 disabled:opacity-50 ml-3 transition-colors"
-                  >
-                    {loading ? '...' : '→'}
-                  </button>
+            <div className="w-full max-w-2xl">
+              <div className="flex items-center bg-white rounded-full shadow-sm border border-blue-200 px-4 py-3">
+                <div className="w-5 h-5 mr-3 flex items-center justify-center">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66L9.64 16.2a2 2 0 01-2.83-2.83l8.49-8.49" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
                 </div>
-                <div className="text-sm text-gray-500 mt-3 text-center">RETS.ai can make mistakes. Verify for accuracy.</div>
+                <input
+                  type="text"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  onKeyDown={handleKeyPress}
+                  placeholder="Ask RETS to do anything"
+                  className="flex-1 outline-none text-gray-700 placeholder-gray-500"
+                />
+                <button
+                  onClick={sendMessage}
+                  disabled={loading || !message.trim()}
+                  className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center hover:bg-blue-700 disabled:opacity-50 ml-2"
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M7 17L17 7M17 7H7M17 7V17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
               </div>
-            </div>
-
-            {/* Sample Prompts */}
-            <div className="w-full max-w-3xl">
-              <div className="text-center mb-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">Try these examples:</h3>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {samplePrompts.map((prompt, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setMessage(prompt)}
-                    className="text-left p-4 bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 group"
-                  >
-                    <div className="text-sm text-gray-700 group-hover:text-blue-700">{prompt}</div>
-                  </button>
-                ))}
-              </div>
+              <div className="text-sm text-gray-500 mt-2 text-center">RETS.ai can make mistakes. Verify for accuracy.</div>
             </div>
           </div>
         )}
 
         {/* Chat Messages */}
         {chatHistory.length > 0 && (
-          <div className="py-8">
+          <div className="pb-32">
             <div className="space-y-8">
               {chatHistory.map((msg, index) => (
                 <div key={index} className="max-w-4xl mx-auto">
                   {msg.role === 'user' && (
                     <div className="flex justify-end mb-6">
-                      <div className="bg-blue-600 text-white px-6 py-3 rounded-2xl max-w-2xl shadow-sm">
+                      <div className="bg-gray-200 text-gray-900 px-4 py-2 rounded-lg max-w-2xl">
                         {msg.content}
                       </div>
                     </div>
@@ -409,55 +392,50 @@ export default function HomePage() {
                         </div>
                       )}
                       
-                      <div className="text-gray-700 text-lg leading-relaxed bg-white rounded-2xl px-6 py-4 shadow-sm border border-gray-100">
-                        {msg.content}
-                      </div>
+                      <div className="text-gray-700">{msg.content}</div>
                     </div>
                   )}
                 </div>
               ))}
-            </div>
-          </div>
-        )}
-          
-        {loading && (
-          <div className="flex justify-center mb-8">
-            <div className="bg-white text-gray-700 px-6 py-3 rounded-2xl shadow-sm border border-gray-100 flex items-center space-x-3">
-              <div className="flex space-x-1">
-                <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
-              </div>
-              <span className="text-gray-600">RETS is thinking...</span>
+              
+              {loading && (
+                <div className="flex justify-start mb-4 max-w-4xl mx-auto">
+                  <div className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg">
+                    Thinking ...
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
 
-        {/* Input Section - appears after first message */}
+        {/* Input Section - Fixed at bottom after first message */}
         {chatHistory.length > 0 && (
-          <div className="sticky bottom-6 z-20">
-            <div className="max-w-3xl mx-auto px-6">
-              <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200 p-4">
-                <div className="flex items-center space-x-4">
-                  <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-xs">💬</span>
-                  </div>
-                  <input
-                    type="text"
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    onKeyDown={handleKeyPress}
-                    placeholder="Message RETS"
-                    className="flex-1 outline-none text-gray-800 placeholder-gray-500 bg-transparent"
-                  />
-                  <button
-                    onClick={sendMessage}
-                    disabled={loading || !message.trim()}
-                    className="w-10 h-10 bg-blue-600 text-white rounded-xl flex items-center justify-center hover:bg-blue-700 disabled:opacity-50 transition-colors"
-                  >
-                    {loading ? '...' : '→'}
-                  </button>
+          <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-sm border-t border-gray-200 p-4">
+            <div className="max-w-2xl mx-auto">
+              <div className="flex items-center bg-white rounded-full shadow-sm border border-blue-200 px-4 py-3">
+                <div className="w-5 h-5 mr-3 flex items-center justify-center">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66L9.64 16.2a2 2 0 01-2.83-2.83l8.49-8.49" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
                 </div>
+                <input
+                  type="text"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  onKeyDown={handleKeyPress}
+                  placeholder="Message RETS"
+                  className="flex-1 outline-none text-gray-700 placeholder-gray-500"
+                />
+                <button
+                  onClick={sendMessage}
+                  disabled={loading || !message.trim()}
+                  className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center hover:bg-blue-700 disabled:opacity-50 ml-2"
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M7 17L17 7M17 7H7M17 7V17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
               </div>
             </div>
           </div>
