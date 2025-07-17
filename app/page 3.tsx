@@ -162,14 +162,6 @@ export default function HomePage() {
     setSelectedProperty(property);
     setLoading(true);
     
-    // Add user message to show they clicked View Model
-    const userMessage: Message = {
-      role: 'user',
-      content: `Generate financial model for ${property.address}`,
-      type: 'text'
-    };
-    setChatHistory(prev => [...prev, userMessage]);
-    
     try {
       // Call the intelligent underwriting API
       const response = await fetch('/api/underwriting', {
@@ -198,38 +190,19 @@ export default function HomePage() {
     } catch (error) {
       console.error('Error generating financial model:', error);
       
-      // Enhanced fallback model
-      const purchasePrice = parseInt(property.price.replace(/[$,]/g, ''));
-      const capRate = parseFloat(property.capRate);
-      const noi = Math.round(purchasePrice * (capRate / 100));
+      // Fallback to basic model if API fails
       const basicModelData = {
-        property,
-        purchasePrice,
         address: property.address,
         price: property.price,
-        capRate: capRate,
-        noi: noi,
-        grossIncome: Math.round(noi / 0.85),
-        cashFlow: Math.round(noi * 0.6),
-        cashOnCash: 0.125,
-        irr: 14.2,
-        totalReturn: capRate + 12.5,
-        projections: Array.from({length: 10}, (_, i) => ({
-          year: i + 1,
-          income: Math.round((noi / 0.85) * Math.pow(1.03, i)),
-          expenses: Math.round((noi * 0.15) * Math.pow(1.025, i)),
-          noi: Math.round(noi * Math.pow(1.03, i)),
-          cashFlow: Math.round(noi * 0.6 * Math.pow(1.03, i))
-        })),
-        marketComps: [
-          {address: "1420 E Pine St", price: `$${(purchasePrice * 1.1).toLocaleString()}`, capRate: `${(capRate - 0.3).toFixed(1)}%`},
-          {address: "950 Taylor Ave N", price: `$${(purchasePrice * 0.95).toLocaleString()}`, capRate: `${(capRate + 0.2).toFixed(1)}%`}
-        ]
+        capRate: property.capRate,
+        noi: Math.round(parseInt(property.price.replace(/[$,]/g, '')) * parseFloat(property.capRate) / 100),
+        cashFlow: Math.round(parseInt(property.price.replace(/[$,]/g, '')) * 0.02),
+        roi: '12.5%'
       };
       
       const fallbackMessage: Message = {
         role: 'assistant',
-        content: `**Financial Model Generated for ${property.address}**\n\nAnalysis complete. This ${property.details.includes('unit') ? property.details.split('-')[0] + '-unit' : 'multifamily'} property shows strong fundamentals with a ${property.capRate} cap rate.\n\n**Key Highlights:**\n• NOI: $${noi.toLocaleString()}\n• Strong cash flow potential\n• Seattle market fundamentals support growth\n• Recommended for acquisition consideration`,
+        content: `Financial model generated for ${property.address}. Basic analysis complete - full model available with API integration.`,
         type: 'underwriting',
         data: basicModelData
       };
@@ -242,14 +215,6 @@ export default function HomePage() {
 
   const handleAbstractOM = async (property: Property) => {
     setLoading(true);
-    
-    // Add user message to show they clicked Abstract OM
-    const userMessage: Message = {
-      role: 'user',
-      content: `Generate offering memorandum for ${property.address}`,
-      type: 'text'
-    };
-    setChatHistory(prev => [...prev, userMessage]);
     
     try {
       // Call the intelligent OM generation API
@@ -279,35 +244,12 @@ export default function HomePage() {
     } catch (error) {
       console.error('Error generating offering memorandum:', error);
       
-      // Enhanced fallback OM
-      const units = property.details.includes('unit') ? parseInt(property.details.split('-')[0]) : 25;
-      const purchasePrice = parseInt(property.price.replace(/[$,]/g, ''));
-      
-      const fallbackOM = {
-        address: property.address,
-        location: property.location,
-        price: property.price,
-        executiveSummary: `**Investment Opportunity - ${property.address}**\n\nThis ${units}-unit multifamily property presents a compelling investment opportunity in Seattle's dynamic rental market. The asset delivers a ${property.capRate} cap rate with strong fundamentals and upside potential.\n\nLocated in a desirable Seattle submarket, the property benefits from proximity to major employment centers, excellent transportation connectivity, and robust demographic trends. With Seattle's continued growth and limited supply, this asset is positioned for consistent cash flow and appreciation.`,
-        financialHighlights: {
-          purchasePrice: property.price,
-          capRate: property.capRate,
-          pricePerUnit: `$${Math.round(purchasePrice / units).toLocaleString()}`,
-          totalUnits: units
-        },
-        investmentHighlights: [
-          `Strong ${property.capRate} cap rate in premium Seattle submarket`,
-          `${units}-unit multifamily asset with stable income profile`,
-          "Proximity to major employment centers",
-          "Value-add opportunities through improvements",
-          "Strong Seattle rental market fundamentals"
-        ]
-      };
-      
+      // Fallback to basic OM if API fails
       const fallbackMessage: Message = {
         role: 'assistant',
-        content: `**Offering Memorandum Generated for ${property.address}**\n\n${fallbackOM.executiveSummary}\n\n**Investment Highlights:**\n${fallbackOM.investmentHighlights.map(h => `• ${h}`).join('\n')}\n\n**Financial Summary:**\n• Purchase Price: ${property.price}\n• Cap Rate: ${property.capRate}\n• Price per Unit: ${fallbackOM.financialHighlights.pricePerUnit}`,
+        content: `Offering Memorandum generated for ${property.address}. This comprehensive document includes property details, financial projections, and investment highlights. Full intelligence available with API integration.`,
         type: 'loi',
-        data: fallbackOM
+        data: { address: property.address, location: property.location, price: property.price }
       };
       
       setChatHistory(prev => [...prev, fallbackMessage]);
@@ -317,30 +259,30 @@ export default function HomePage() {
   };
 
   const PropertyCard = ({ property }: { property: Property }) => (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all duration-200">
-      <div className="h-36 bg-gradient-to-r from-blue-400 to-purple-400 relative">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all duration-200">
+      <div className="h-48 bg-gradient-to-r from-blue-400 to-purple-400 relative">
         <div className="absolute inset-0 bg-black bg-opacity-10"></div>
-        <div className="absolute bottom-2 left-2">
+        <div className="absolute bottom-3 left-3">
           <div className="text-white text-xs font-medium bg-black bg-opacity-30 px-2 py-1 rounded">
             {property.capRate} CAP
           </div>
         </div>
       </div>
-      <div className="p-3">
-        <div className="text-lg font-bold text-gray-900 mb-1">{property.price}</div>
-        <div className="text-sm font-semibold text-gray-800 mb-1">{property.address}</div>
-        <div className="text-xs text-gray-500 mb-2">{property.location}</div>
-        <div className="text-xs text-gray-600 mb-3">{property.details}</div>
-        <div className="flex space-x-2">
+      <div className="p-5">
+        <div className="text-2xl font-bold text-gray-900 mb-2">{property.price}</div>
+        <div className="text-base font-semibold text-gray-800 mb-1">{property.address}</div>
+        <div className="text-sm text-gray-500 mb-3">{property.location}</div>
+        <div className="text-sm text-gray-600 mb-4">{property.details}</div>
+        <div className="flex space-x-3">
           <button 
             onClick={() => handleViewModel(property)}
-            className="text-xs text-blue-600 hover:text-blue-800 font-medium hover:underline transition-colors"
+            className="text-sm text-blue-600 hover:text-blue-800 font-medium hover:underline transition-colors"
           >
             View Model
           </button>
           <button 
             onClick={() => handleAbstractOM(property)}
-            className="text-xs text-blue-600 hover:text-blue-800 font-medium hover:underline transition-colors"
+            className="text-sm text-blue-600 hover:text-blue-800 font-medium hover:underline transition-colors"
           >
             Abstract OM
           </button>
@@ -349,126 +291,72 @@ export default function HomePage() {
     </div>
   );
 
-  const UnderwritingChart = ({ data }: { data?: any }) => {
-    const handleDownloadModel = async () => {
-      if (!data?.property) return;
-      
-      try {
-        const response = await fetch('/api/excel-model', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            property: data.property,
-            financialModel: data,
-            projections: data.projections || []
-          })
-        });
-        
-        if (response.ok) {
-          const result = await response.json();
-          alert(`Excel model ready for download: ${result.filename || 'Financial_Model.xlsx'}`);
-        }
-      } catch (error) {
-        console.error('Error generating Excel model:', error);
-        alert('Excel model generation temporarily unavailable');
-      }
-    };
-
-    // Create Excel-style spreadsheet data
-    const spreadsheetData = [
-      ['', 'Year 1', 'Year 2', 'Year 3', 'Year 4', 'Year 5', 'Year 6', 'Year 7', 'Year 8', 'Year 9', 'Year 10'],
-      ['Gross Income', '$418,824', '$431,289', '$444,228', '$457,555', '$471,482', '$485,827', '$500,602', '$515,820', '$531,495', '$547,640'],
-      ['Vacancy (5%)', '$20,941', '$21,564', '$22,211', '$22,878', '$23,574', '$24,291', '$25,030', '$25,791', '$26,575', '$27,382'],
-      ['Effective Income', '$397,883', '$409,725', '$422,017', '$434,677', '$447,907', '$461,536', '$475,572', '$490,029', '$504,920', '$520,258'],
-      ['Operating Expenses', '$139,259', '$142,740', '$146,309', '$149,967', '$153,716', '$157,559', '$161,498', '$165,535', '$169,673', '$173,915'],
-      ['Net Operating Income', '$258,624', '$266,985', '$275,708', '$284,710', '$294,191', '$303,977', '$314,074', '$324,494', '$335,247', '$346,343'],
-      ['Debt Service', '$164,800', '$164,800', '$164,800', '$164,800', '$164,800', '$164,800', '$164,800', '$164,800', '$164,800', '$164,800'],
-      ['Cash Flow', '$93,824', '$102,185', '$110,908', '$119,910', '$129,391', '$139,177', '$149,274', '$159,694', '$170,447', '$181,543']
-    ];
-
-    return (
-      <div className="bg-white rounded-lg shadow-lg border border-gray-100 p-4 max-w-4xl mx-auto">
-        {/* Excel-style spreadsheet interface */}
-        <div className="mb-4">
-          {/* Column headers and row styling to look like Excel */}
-          <div className="border border-gray-300 rounded-lg overflow-hidden bg-white">
-            {/* Header row */}
-            <div className="bg-gray-100 border-b border-gray-300">
-              {spreadsheetData[0].map((header, index) => (
-                <div key={index} className={`inline-block text-xs font-medium text-gray-700 p-2 border-r border-gray-300 ${index === 0 ? 'w-36' : 'w-20'} text-center`}>
-                  {header}
-                </div>
-              ))}
+  const UnderwritingChart = ({ data }: { data?: any }) => (
+    <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 max-w-lg mx-auto">
+      <div className="mb-6">
+        <div className="h-40 bg-gradient-to-r from-green-100 to-blue-100 rounded-lg border mb-4 flex items-center justify-center relative overflow-hidden">
+          {/* Mock chart visualization */}
+          <div className="absolute inset-0 p-4">
+            <div className="flex items-end justify-between h-full">
+              <div className="w-8 bg-green-500 h-3/4 rounded-t"></div>
+              <div className="w-8 bg-blue-500 h-1/2 rounded-t"></div>
+              <div className="w-8 bg-purple-500 h-2/3 rounded-t"></div>
+              <div className="w-8 bg-orange-500 h-4/5 rounded-t"></div>
+              <div className="w-8 bg-red-500 h-1/3 rounded-t"></div>
             </div>
-            
-            {/* Data rows */}
-            {spreadsheetData.slice(1).map((row, rowIndex) => (
-              <div key={rowIndex} className={`border-b border-gray-200 ${rowIndex === spreadsheetData.length - 2 ? 'bg-green-50' : 'bg-white'}`}>
-                {row.map((cell, cellIndex) => (
-                  <div key={cellIndex} className={`inline-block text-xs p-2 border-r border-gray-200 ${cellIndex === 0 ? 'w-36 font-medium text-gray-700' : 'w-20 text-center font-mono'} ${rowIndex === spreadsheetData.length - 2 ? 'font-bold text-green-700' : 'text-gray-900'}`}>
-                    {cell}
-                  </div>
-                ))}
-              </div>
-            ))}
           </div>
-        </div>
-        
-        <div className="mb-4">
-          <h3 className="font-bold text-gray-900 mb-1">
-            Underwriting: {data?.property?.address || data?.address || '1052 E Thomas St'}
-          </h3>
-          <div className="text-sm text-gray-600 mb-4">
-            {data?.property?.location || 'Seattle WA 98102'}
-          </div>
-          <div className="flex space-x-3">
-            <button className="text-sm text-blue-600 hover:text-blue-800 font-medium hover:underline transition-colors">
-              Generate LOI
-            </button>
-            <button 
-              onClick={handleDownloadModel}
-              className="text-sm text-green-600 hover:text-green-800 font-medium hover:underline transition-colors"
-            >
-              Download
-            </button>
-          </div>
+          <div className="absolute top-2 left-2 text-xs font-medium text-gray-600">Financial Analysis</div>
         </div>
       </div>
-    );
-  };
-
-  const LOIDocument = ({ data }: { data?: any }) => (
-    <div className="bg-white rounded-lg shadow-lg border border-gray-100 p-4 max-w-md mx-auto">
-      <div className="mb-4">
-        {/* Document preview that looks like actual document */}
-        <div className="h-64 bg-white border border-gray-300 rounded mb-4 p-3 overflow-hidden">
-          <div className="text-xs leading-tight text-gray-800 space-y-2">
-            <div className="text-center font-bold mb-3">LETTER OF INTENT</div>
-            <div><strong>Property:</strong> {data?.address || '1052 E Thomas St'}</div>
-            <div><strong>Location:</strong> {data?.location || 'Seattle, WA 98102'}</div>
-            <div><strong>Purchase Price:</strong> {data?.price || '$6,950,000'}</div>
-            <div><strong>Earnest Money:</strong> $100,000</div>
-            <div><strong>Inspection Period:</strong> 30 days</div>
-            <div><strong>Financing:</strong> Conventional</div>
-            <div><strong>Closing Date:</strong> 60 days from acceptance</div>
-            <div className="pt-2 border-t border-gray-200 mt-3">
-              <div className="text-xs">This Letter of Intent outlines the basic terms and conditions for the potential acquisition of the above-referenced property. This LOI is non-binding and subject to due diligence, financing approval, and execution of a definitive purchase agreement.</div>
-            </div>
-            <div className="pt-2">
-              <div className="text-xs"><strong>Buyer:</strong> [Buyer Name]</div>
-              <div className="text-xs"><strong>Date:</strong> {new Date().toLocaleDateString()}</div>
-            </div>
+      
+      {/* Financial Metrics */}
+      {data && (
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="bg-gray-50 p-3 rounded-lg">
+            <div className="text-xs text-gray-500 mb-1">NOI</div>
+            <div className="text-lg font-bold text-gray-900">${data.noi?.toLocaleString()}</div>
           </div>
+          <div className="bg-gray-50 p-3 rounded-lg">
+            <div className="text-xs text-gray-500 mb-1">Cash Flow</div>
+            <div className="text-lg font-bold text-green-600">${data.cashFlow?.toLocaleString()}</div>
+          </div>
+          <div className="bg-gray-50 p-3 rounded-lg">
+            <div className="text-xs text-gray-500 mb-1">Cap Rate</div>
+            <div className="text-lg font-bold text-blue-600">{data.capRate}</div>
+          </div>
+          <div className="bg-gray-50 p-3 rounded-lg">
+            <div className="text-xs text-gray-500 mb-1">ROI</div>
+            <div className="text-lg font-bold text-purple-600">{data.roi}</div>
+          </div>
+        </div>
+      )}
+      
+      <div className="mb-4">
+        <h3 className="font-bold text-gray-900 mb-1">Underwriting: {data?.address || '1052 E Thomas St'}</h3>
+        <div className="text-sm text-gray-600 mb-4">Seattle WA 98102</div>
+        <div className="flex space-x-3">
+          <button className="text-sm text-blue-600 hover:text-blue-800 font-medium hover:underline transition-colors">
+            Generate LOI
+          </button>
+          <button className="text-sm text-green-600 hover:text-green-800 font-medium hover:underline transition-colors">
+            Download
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  const LOIDocument = () => (
+    <div className="bg-white rounded-lg shadow-sm border p-6 max-w-md">
+      <div className="mb-4">
+        <div className="h-48 bg-gray-100 rounded border mb-4 flex items-center justify-center">
+          <div className="text-gray-400 text-sm">Letter of Intent Document</div>
         </div>
       </div>
       <div className="mb-4">
         <h3 className="font-semibold text-gray-900 mb-1">Letter of Intent</h3>
-        <div className="text-sm text-gray-600 mb-3">LOI: {data?.address || '1052 E Thomas St'} | RETS.ai</div>
-        <button className="text-sm text-blue-600 hover:text-blue-800 hover:underline font-medium transition-colors">
-          Download
-        </button>
+        <div className="text-sm text-gray-600 mb-3">LOI: 1052 E Thomas St, LO| RETS.ai</div>
+        <button className="text-sm text-blue-600 hover:underline">Download</button>
       </div>
     </div>
   );
@@ -508,9 +396,7 @@ export default function HomePage() {
               <div className="flex items-center bg-white rounded-full shadow-sm border border-blue-200 px-4 py-3">
                 <div className="w-5 h-5 mr-3 flex items-center justify-center">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="3" y="11" width="18" height="10" rx="2" ry="2" stroke="#6b7280" strokeWidth="2"/>
-                    <circle cx="12" cy="16" r="1" fill="#6b7280"/>
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="#6b7280" strokeWidth="2"/>
+                    <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66L9.64 16.2a2 2 0 01-2.83-2.83l8.49-8.49" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </div>
                 <input
@@ -527,7 +413,7 @@ export default function HomePage() {
                   className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center hover:bg-blue-700 disabled:opacity-50 ml-2"
                 >
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 19V5M5 12l7-7 7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M7 17L17 7M17 7H7M17 7V17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </button>
               </div>
@@ -553,7 +439,7 @@ export default function HomePage() {
                   {msg.role === 'assistant' && (
                     <div className="space-y-6">
                       {msg.type === 'properties' && msg.data && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                           {msg.data.map((property: Property) => (
                             <PropertyCard key={property.id} property={property} />
                           ))}
@@ -568,7 +454,7 @@ export default function HomePage() {
                       
                       {msg.type === 'loi' && (
                         <div className="flex justify-center mb-8">
-                          <LOIDocument data={msg.data} />
+                          <LOIDocument />
                         </div>
                       )}
                       
@@ -589,16 +475,14 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* Input Section - Floating at bottom after first message */}
+        {/* Input Section - Fixed at bottom after first message */}
         {chatHistory.length > 0 && (
-          <div className="fixed bottom-6 left-0 right-0 px-6">
+          <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-sm border-t border-gray-200 p-4">
             <div className="max-w-2xl mx-auto">
-              <div className="flex items-center bg-white rounded-full shadow-lg border border-blue-200 px-4 py-3">
+              <div className="flex items-center bg-white rounded-full shadow-sm border border-blue-200 px-4 py-3">
                 <div className="w-5 h-5 mr-3 flex items-center justify-center">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="3" y="11" width="18" height="10" rx="2" ry="2" stroke="#6b7280" strokeWidth="2"/>
-                    <circle cx="12" cy="16" r="1" fill="#6b7280"/>
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="#6b7280" strokeWidth="2"/>
+                    <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66L9.64 16.2a2 2 0 01-2.83-2.83l8.49-8.49" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </div>
                 <input
@@ -615,7 +499,7 @@ export default function HomePage() {
                   className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center hover:bg-blue-700 disabled:opacity-50 ml-2"
                 >
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 19V5M5 12l7-7 7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M7 17L17 7M17 7H7M17 7V17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </button>
               </div>
