@@ -158,38 +158,104 @@ export default function HomePage() {
     }
   };
 
-  const handleViewModel = (property: Property) => {
+  const handleViewModel = async (property: Property) => {
     setSelectedProperty(property);
-    // Create mock financial model data
-    const modelData = {
-      address: property.address,
-      price: property.price,
-      capRate: property.capRate,
-      noi: Math.round(parseInt(property.price.replace(/[$,]/g, '')) * parseFloat(property.capRate) / 100),
-      cashFlow: Math.round(parseInt(property.price.replace(/[$,]/g, '')) * 0.02),
-      roi: '12.5%'
-    };
+    setLoading(true);
     
-    const modelMessage: Message = {
-      role: 'assistant',
-      content: `Financial model generated for ${property.address}. Here's the detailed analysis:`,
-      type: 'underwriting',
-      data: modelData
-    };
+    try {
+      // Call the intelligent underwriting API
+      const response = await fetch('/api/underwriting', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ property })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to generate financial model');
+      }
+      
+      const financialModel = await response.json();
+      
+      const modelMessage: Message = {
+        role: 'assistant',
+        content: `**Financial Model Generated for ${property.address}**\n\n${financialModel.analysis}`,
+        type: 'underwriting',
+        data: financialModel
+      };
+      
+      setChatHistory(prev => [...prev, modelMessage]);
+      
+    } catch (error) {
+      console.error('Error generating financial model:', error);
+      
+      // Fallback to basic model if API fails
+      const basicModelData = {
+        address: property.address,
+        price: property.price,
+        capRate: property.capRate,
+        noi: Math.round(parseInt(property.price.replace(/[$,]/g, '')) * parseFloat(property.capRate) / 100),
+        cashFlow: Math.round(parseInt(property.price.replace(/[$,]/g, '')) * 0.02),
+        roi: '12.5%'
+      };
+      
+      const fallbackMessage: Message = {
+        role: 'assistant',
+        content: `Financial model generated for ${property.address}. Basic analysis complete - full model available with API integration.`,
+        type: 'underwriting',
+        data: basicModelData
+      };
+      
+      setChatHistory(prev => [...prev, fallbackMessage]);
+    }
     
-    setChatHistory(prev => [...prev, modelMessage]);
+    setLoading(false);
   };
 
-  const handleAbstractOM = (property: Property) => {
-    // Create offering memorandum
-    const omMessage: Message = {
-      role: 'assistant',
-      content: `Offering Memorandum generated for ${property.address}. This comprehensive document includes property details, financial projections, and investment highlights.`,
-      type: 'loi',
-      data: { address: property.address, location: property.location, price: property.price }
-    };
+  const handleAbstractOM = async (property: Property) => {
+    setLoading(true);
     
-    setChatHistory(prev => [...prev, omMessage]);
+    try {
+      // Call the intelligent OM generation API
+      const response = await fetch('/api/offering-memorandum', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ property })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to generate offering memorandum');
+      }
+      
+      const offeringMemorandum = await response.json();
+      
+      const omMessage: Message = {
+        role: 'assistant',
+        content: `**Offering Memorandum Generated for ${property.address}**\n\n${offeringMemorandum.executiveSummary}`,
+        type: 'loi',
+        data: offeringMemorandum
+      };
+      
+      setChatHistory(prev => [...prev, omMessage]);
+      
+    } catch (error) {
+      console.error('Error generating offering memorandum:', error);
+      
+      // Fallback to basic OM if API fails
+      const fallbackMessage: Message = {
+        role: 'assistant',
+        content: `Offering Memorandum generated for ${property.address}. This comprehensive document includes property details, financial projections, and investment highlights. Full intelligence available with API integration.`,
+        type: 'loi',
+        data: { address: property.address, location: property.location, price: property.price }
+      };
+      
+      setChatHistory(prev => [...prev, fallbackMessage]);
+    }
+    
+    setLoading(false);
   };
 
   const PropertyCard = ({ property }: { property: Property }) => (
@@ -225,60 +291,153 @@ export default function HomePage() {
     </div>
   );
 
-  const UnderwritingChart = ({ data }: { data?: any }) => (
-    <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 max-w-lg mx-auto">
-      <div className="mb-6">
-        <div className="h-40 bg-gradient-to-r from-green-100 to-blue-100 rounded-lg border mb-4 flex items-center justify-center relative overflow-hidden">
-          {/* Mock chart visualization */}
-          <div className="absolute inset-0 p-4">
-            <div className="flex items-end justify-between h-full">
-              <div className="w-8 bg-green-500 h-3/4 rounded-t"></div>
-              <div className="w-8 bg-blue-500 h-1/2 rounded-t"></div>
-              <div className="w-8 bg-purple-500 h-2/3 rounded-t"></div>
-              <div className="w-8 bg-orange-500 h-4/5 rounded-t"></div>
-              <div className="w-8 bg-red-500 h-1/3 rounded-t"></div>
+  const UnderwritingChart = ({ data }: { data?: any }) => {
+    const handleDownloadModel = async () => {
+      if (!data?.property) return;
+      
+      try {
+        const response = await fetch('/api/excel-model', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            property: data.property,
+            financialModel: data,
+            projections: data.projections || []
+          })
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          alert(`Excel model ready for download: ${result.filename || 'Financial_Model.xlsx'}`);
+        }
+      } catch (error) {
+        console.error('Error generating Excel model:', error);
+        alert('Excel model generation temporarily unavailable');
+      }
+    };
+
+    return (
+      <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 max-w-2xl mx-auto">
+        <div className="mb-6">
+          <div className="h-40 bg-gradient-to-r from-green-100 to-blue-100 rounded-lg border mb-4 flex items-center justify-center relative overflow-hidden">
+            {/* Enhanced chart visualization */}
+            <div className="absolute inset-0 p-4">
+              <div className="flex items-end justify-between h-full">
+                {data?.projections?.slice(0, 5).map((proj: any, index: number) => (
+                  <div 
+                    key={index}
+                    className={`w-6 rounded-t ${
+                      index === 0 ? 'bg-green-500' :
+                      index === 1 ? 'bg-blue-500' :
+                      index === 2 ? 'bg-purple-500' :
+                      index === 3 ? 'bg-orange-500' : 'bg-red-500'
+                    }`}
+                    style={{ 
+                      height: `${Math.min((proj.cashFlow / (data.noi || 100000)) * 100, 90)}%` 
+                    }}
+                  ></div>
+                )) || (
+                  <>
+                    <div className="w-8 bg-green-500 h-3/4 rounded-t"></div>
+                    <div className="w-8 bg-blue-500 h-1/2 rounded-t"></div>
+                    <div className="w-8 bg-purple-500 h-2/3 rounded-t"></div>
+                    <div className="w-8 bg-orange-500 h-4/5 rounded-t"></div>
+                    <div className="w-8 bg-red-500 h-1/3 rounded-t"></div>
+                  </>
+                )}
+              </div>
+            </div>
+            <div className="absolute top-2 left-2 text-xs font-medium text-gray-600">
+              {data?.projections ? '10-Year Cash Flow Projection' : 'Financial Analysis'}
             </div>
           </div>
-          <div className="absolute top-2 left-2 text-xs font-medium text-gray-600">Financial Analysis</div>
+        </div>
+        
+        {/* Enhanced Financial Metrics */}
+        {data && (
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="bg-gray-50 p-3 rounded-lg">
+              <div className="text-xs text-gray-500 mb-1">NOI</div>
+              <div className="text-lg font-bold text-gray-900">
+                ${data.noi?.toLocaleString() || 'N/A'}
+              </div>
+            </div>
+            <div className="bg-gray-50 p-3 rounded-lg">
+              <div className="text-xs text-gray-500 mb-1">Cash Flow</div>
+              <div className="text-lg font-bold text-green-600">
+                ${((data.noi || 0) - (data.loanAmount * 0.08 || 0)).toLocaleString()}
+              </div>
+            </div>
+            <div className="bg-gray-50 p-3 rounded-lg">
+              <div className="text-xs text-gray-500 mb-1">Cap Rate</div>
+              <div className="text-lg font-bold text-blue-600">
+                {data.capRate ? `${data.capRate.toFixed(2)}%` : data.capRate || 'N/A'}
+              </div>
+            </div>
+            <div className="bg-gray-50 p-3 rounded-lg">
+              <div className="text-xs text-gray-500 mb-1">Cash-on-Cash</div>
+              <div className="text-lg font-bold text-purple-600">
+                {data.cashOnCash ? `${(data.cashOnCash * 100).toFixed(1)}%` : data.roi || 'N/A'}
+              </div>
+            </div>
+            {data.irr && (
+              <>
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <div className="text-xs text-gray-500 mb-1">IRR</div>
+                  <div className="text-lg font-bold text-indigo-600">
+                    {data.irr.toFixed(1)}%
+                  </div>
+                </div>
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <div className="text-xs text-gray-500 mb-1">Total Return</div>
+                  <div className="text-lg font-bold text-emerald-600">
+                    {data.totalReturn?.toFixed(1)}%
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+        
+        {/* Market Comparables */}
+        {data?.marketComps && (
+          <div className="mb-6">
+            <h4 className="font-semibold text-gray-900 mb-3">Market Comparables</h4>
+            <div className="space-y-2">
+              {data.marketComps.slice(0, 2).map((comp: any, index: number) => (
+                <div key={index} className="text-sm bg-blue-50 p-2 rounded">
+                  <div className="font-medium">{comp.address}</div>
+                  <div className="text-gray-600">{comp.price} • {comp.capRate} cap</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        
+        <div className="mb-4">
+          <h3 className="font-bold text-gray-900 mb-1">
+            Analysis: {data?.property?.address || data?.address || '1052 E Thomas St'}
+          </h3>
+          <div className="text-sm text-gray-600 mb-4">
+            {data?.property?.location || 'Seattle WA 98102'}
+          </div>
+          <div className="flex space-x-3">
+            <button className="text-sm text-blue-600 hover:text-blue-800 font-medium hover:underline transition-colors">
+              Generate LOI
+            </button>
+            <button 
+              onClick={handleDownloadModel}
+              className="text-sm text-green-600 hover:text-green-800 font-medium hover:underline transition-colors"
+            >
+              Download Excel Model
+            </button>
+          </div>
         </div>
       </div>
-      
-      {/* Financial Metrics */}
-      {data && (
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <div className="bg-gray-50 p-3 rounded-lg">
-            <div className="text-xs text-gray-500 mb-1">NOI</div>
-            <div className="text-lg font-bold text-gray-900">${data.noi?.toLocaleString()}</div>
-          </div>
-          <div className="bg-gray-50 p-3 rounded-lg">
-            <div className="text-xs text-gray-500 mb-1">Cash Flow</div>
-            <div className="text-lg font-bold text-green-600">${data.cashFlow?.toLocaleString()}</div>
-          </div>
-          <div className="bg-gray-50 p-3 rounded-lg">
-            <div className="text-xs text-gray-500 mb-1">Cap Rate</div>
-            <div className="text-lg font-bold text-blue-600">{data.capRate}</div>
-          </div>
-          <div className="bg-gray-50 p-3 rounded-lg">
-            <div className="text-xs text-gray-500 mb-1">ROI</div>
-            <div className="text-lg font-bold text-purple-600">{data.roi}</div>
-          </div>
-        </div>
-      )}
-      
-      <div className="mb-4">
-        <h3 className="font-bold text-gray-900 mb-1">Underwriting: {data?.address || '1052 E Thomas St'}</h3>
-        <div className="text-sm text-gray-600 mb-4">Seattle WA 98102</div>
-        <div className="flex space-x-3">
-          <button className="text-sm text-blue-600 hover:text-blue-800 font-medium hover:underline transition-colors">
-            Generate LOI
-          </button>
-          <button className="text-sm text-green-600 hover:text-green-800 font-medium hover:underline transition-colors">
-            Download
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+    );
+  };
 
   const LOIDocument = () => (
     <div className="bg-white rounded-lg shadow-sm border p-6 max-w-md">
