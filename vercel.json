@@ -1,0 +1,10 @@
+{
+  "functions": {
+    "api/chat.py": {
+      "runtime": "@vercel/python@3.9.0"
+    },
+    "api/properties.py": {
+      "runtime": "@vercel/python@3.9.0"
+    }
+  }
+}
