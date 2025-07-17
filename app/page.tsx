@@ -23,6 +23,7 @@ export default function HomePage() {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [chatHistory, setChatHistory] = useState<Message[]>([]);
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
 
   // Mock properties data to match screenshots
   const mockProperties: Property[] = [
@@ -71,6 +72,14 @@ export default function HomePage() {
       details: "13-unit apartment • 5.49% cap rate",
       capRate: "5.49%"
     }
+  ];
+
+  // Sample prompts for suggestions
+  const samplePrompts = [
+    "Find me properties that fit my buy box in Seattle, $5-7M and a cap rate between 4-6%",
+    "Show me multifamily properties under $5M in downtown Seattle",
+    "Generate underwriting analysis for commercial properties",
+    "What are the best investment opportunities in the Pacific Northwest?"
   ];
 
   const sendMessage = async () => {
@@ -149,37 +158,123 @@ export default function HomePage() {
     }
   };
 
+  const handleViewModel = (property: Property) => {
+    setSelectedProperty(property);
+    // Create mock financial model data
+    const modelData = {
+      address: property.address,
+      price: property.price,
+      capRate: property.capRate,
+      noi: Math.round(parseInt(property.price.replace(/[$,]/g, '')) * parseFloat(property.capRate) / 100),
+      cashFlow: Math.round(parseInt(property.price.replace(/[$,]/g, '')) * 0.02),
+      roi: '12.5%'
+    };
+    
+    const modelMessage: Message = {
+      role: 'assistant',
+      content: `Financial model generated for ${property.address}. Here's the detailed analysis:`,
+      type: 'underwriting',
+      data: modelData
+    };
+    
+    setChatHistory(prev => [...prev, modelMessage]);
+  };
+
+  const handleAbstractOM = (property: Property) => {
+    // Create offering memorandum
+    const omMessage: Message = {
+      role: 'assistant',
+      content: `Offering Memorandum generated for ${property.address}. This comprehensive document includes property details, financial projections, and investment highlights.`,
+      type: 'loi',
+      data: { address: property.address, location: property.location, price: property.price }
+    };
+    
+    setChatHistory(prev => [...prev, omMessage]);
+  };
+
   const PropertyCard = ({ property }: { property: Property }) => (
-    <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
-      <div className="h-40 bg-gray-200 relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-400"></div>
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all duration-200">
+      <div className="h-48 bg-gradient-to-r from-blue-400 to-purple-400 relative">
+        <div className="absolute inset-0 bg-black bg-opacity-10"></div>
+        <div className="absolute bottom-3 left-3">
+          <div className="text-white text-xs font-medium bg-black bg-opacity-30 px-2 py-1 rounded">
+            {property.capRate} CAP
+          </div>
+        </div>
       </div>
-      <div className="p-4">
-        <div className="text-xl font-bold text-gray-900 mb-1">{property.price}</div>
-        <div className="text-sm font-medium text-gray-900 mb-1">{property.address}</div>
-        <div className="text-sm text-gray-600 mb-2">{property.location}</div>
-        <div className="text-sm text-gray-600 mb-3">{property.details}</div>
-        <div className="flex space-x-2">
-          <button className="text-sm text-blue-600 hover:underline">View Model</button>
-          <button className="text-sm text-blue-600 hover:underline">Abstract OM</button>
+      <div className="p-5">
+        <div className="text-2xl font-bold text-gray-900 mb-2">{property.price}</div>
+        <div className="text-base font-semibold text-gray-800 mb-1">{property.address}</div>
+        <div className="text-sm text-gray-500 mb-3">{property.location}</div>
+        <div className="text-sm text-gray-600 mb-4">{property.details}</div>
+        <div className="flex space-x-3">
+          <button 
+            onClick={() => handleViewModel(property)}
+            className="text-sm text-blue-600 hover:text-blue-800 font-medium hover:underline transition-colors"
+          >
+            View Model
+          </button>
+          <button 
+            onClick={() => handleAbstractOM(property)}
+            className="text-sm text-blue-600 hover:text-blue-800 font-medium hover:underline transition-colors"
+          >
+            Abstract OM
+          </button>
         </div>
       </div>
     </div>
   );
 
-  const UnderwritingChart = () => (
-    <div className="bg-white rounded-lg shadow-sm border p-6 max-w-md">
-      <div className="mb-4">
-        <div className="h-32 bg-gray-100 rounded border mb-4 flex items-center justify-center">
-          <div className="text-gray-400 text-sm">Underwriting Analysis Chart</div>
+  const UnderwritingChart = ({ data }: { data?: any }) => (
+    <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 max-w-lg mx-auto">
+      <div className="mb-6">
+        <div className="h-40 bg-gradient-to-r from-green-100 to-blue-100 rounded-lg border mb-4 flex items-center justify-center relative overflow-hidden">
+          {/* Mock chart visualization */}
+          <div className="absolute inset-0 p-4">
+            <div className="flex items-end justify-between h-full">
+              <div className="w-8 bg-green-500 h-3/4 rounded-t"></div>
+              <div className="w-8 bg-blue-500 h-1/2 rounded-t"></div>
+              <div className="w-8 bg-purple-500 h-2/3 rounded-t"></div>
+              <div className="w-8 bg-orange-500 h-4/5 rounded-t"></div>
+              <div className="w-8 bg-red-500 h-1/3 rounded-t"></div>
+            </div>
+          </div>
+          <div className="absolute top-2 left-2 text-xs font-medium text-gray-600">Financial Analysis</div>
         </div>
       </div>
+      
+      {/* Financial Metrics */}
+      {data && (
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="bg-gray-50 p-3 rounded-lg">
+            <div className="text-xs text-gray-500 mb-1">NOI</div>
+            <div className="text-lg font-bold text-gray-900">${data.noi?.toLocaleString()}</div>
+          </div>
+          <div className="bg-gray-50 p-3 rounded-lg">
+            <div className="text-xs text-gray-500 mb-1">Cash Flow</div>
+            <div className="text-lg font-bold text-green-600">${data.cashFlow?.toLocaleString()}</div>
+          </div>
+          <div className="bg-gray-50 p-3 rounded-lg">
+            <div className="text-xs text-gray-500 mb-1">Cap Rate</div>
+            <div className="text-lg font-bold text-blue-600">{data.capRate}</div>
+          </div>
+          <div className="bg-gray-50 p-3 rounded-lg">
+            <div className="text-xs text-gray-500 mb-1">ROI</div>
+            <div className="text-lg font-bold text-purple-600">{data.roi}</div>
+          </div>
+        </div>
+      )}
+      
       <div className="mb-4">
-        <h3 className="font-semibold text-gray-900 mb-1">Underwriting: 1052 E Thomas St</h3>
-        <div className="text-sm text-gray-600 mb-3">Seattle WA 98102</div>
-        <div className="flex space-x-4">
-          <button className="text-sm text-blue-600 hover:underline">Generate LOI</button>
-          <button className="text-sm text-blue-600 hover:underline">Download</button>
+        <h3 className="font-bold text-gray-900 mb-1">Underwriting: {data?.address || '1052 E Thomas St'}</h3>
+        <div className="text-sm text-gray-600 mb-4">Seattle WA 98102</div>
+        <div className="flex space-x-3">
+          <button className="text-sm text-blue-600 hover:text-blue-800 font-medium hover:underline transition-colors">
+            Generate LOI
+          </button>
+          <button className="text-sm text-green-600 hover:text-green-800 font-medium hover:underline transition-colors">
+            Download
+          </button>
         </div>
       </div>
     </div>
@@ -203,122 +298,166 @@ export default function HomePage() {
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#f8f7ff' }}>
       {/* Header */}
-      <header className="bg-white border-b border-gray-200">
+      <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-3">
-              <div className="w-6 h-6 bg-gray-400 rounded"></div>
-              <span className="text-gray-900 font-medium">RETS</span>
-              <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">v3</span>
+              <div className="w-7 h-7 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">R</span>
+              </div>
+              <span className="text-gray-900 font-semibold text-lg">RETS</span>
+              <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">v3</span>
             </div>
-            <button className="text-gray-600 hover:text-gray-900 text-sm">Light</button>
+            <button className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors">Light</button>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-4xl mx-auto px-6 py-12">
-        {/* Welcome Section */}
+      <main className="max-w-5xl mx-auto px-6">
+        {/* Welcome Section - Centered */}
         {chatHistory.length === 0 && (
-          <div className="text-center mb-16">
-            <h1 className="text-4xl font-bold text-gray-900 mb-8">
-              Who needs manual tasks? Ask RETS instead.
-            </h1>
+          <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)]">
+            <div className="text-center mb-12">
+              <h1 className="text-5xl font-bold text-gray-900 mb-4 leading-tight">
+                Who needs manual tasks?<br />Ask RETS instead.
+              </h1>
+              <p className="text-xl text-gray-600 mb-8">
+                Your AI-powered real estate assistant for property analysis and transactions
+              </p>
+            </div>
             
-            <div className="relative max-w-2xl mx-auto">
-              <div className="flex items-center bg-white rounded-full shadow-sm border border-blue-200 px-4 py-3">
-                <div className="w-5 h-5 bg-gray-400 rounded mr-3"></div>
-                <input
-                  type="text"
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  onKeyDown={handleKeyPress}
-                  placeholder="Find me properties that fit my buy box in Seattle, $5-7M and a cap rate between 4-6%"
-                  className="flex-1 outline-none text-gray-700 placeholder-gray-500"
-                />
-                <button
-                  onClick={sendMessage}
-                  disabled={loading || !message.trim()}
-                  className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center hover:bg-blue-700 disabled:opacity-50 ml-2"
-                >
-                  →
-                </button>
+            <div className="w-full max-w-3xl mb-8">
+              <div className="relative">
+                <div className="flex items-center bg-white rounded-2xl shadow-lg border border-gray-200 px-6 py-4 hover:shadow-xl transition-shadow">
+                  <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mr-4 flex items-center justify-center">
+                    <span className="text-white text-xs">💬</span>
+                  </div>
+                  <input
+                    type="text"
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    onKeyDown={handleKeyPress}
+                    placeholder="Find me properties that fit my buy box in Seattle, $5-7M and a cap rate between 4-6%"
+                    className="flex-1 outline-none text-gray-800 placeholder-gray-500 text-lg"
+                  />
+                  <button
+                    onClick={sendMessage}
+                    disabled={loading || !message.trim()}
+                    className="w-10 h-10 bg-blue-600 text-white rounded-xl flex items-center justify-center hover:bg-blue-700 disabled:opacity-50 ml-3 transition-colors"
+                  >
+                    {loading ? '...' : '→'}
+                  </button>
+                </div>
+                <div className="text-sm text-gray-500 mt-3 text-center">RETS.ai can make mistakes. Verify for accuracy.</div>
               </div>
-              <div className="text-sm text-gray-500 mt-2">RETS.ai can make mistakes. Verify for accuracy.</div>
+            </div>
+
+            {/* Sample Prompts */}
+            <div className="w-full max-w-3xl">
+              <div className="text-center mb-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">Try these examples:</h3>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {samplePrompts.map((prompt, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setMessage(prompt)}
+                    className="text-left p-4 bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 group"
+                  >
+                    <div className="text-sm text-gray-700 group-hover:text-blue-700">{prompt}</div>
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         )}
 
         {/* Chat Messages */}
-        <div className="space-y-6">
-          {chatHistory.map((msg, index) => (
-            <div key={index}>
-              {msg.role === 'user' && (
-                <div className="flex justify-end mb-4">
-                  <div className="bg-gray-200 text-gray-900 px-4 py-2 rounded-lg max-w-2xl">
-                    {msg.content}
-                  </div>
+        {chatHistory.length > 0 && (
+          <div className="py-8">
+            <div className="space-y-8">
+              {chatHistory.map((msg, index) => (
+                <div key={index} className="max-w-4xl mx-auto">
+                  {msg.role === 'user' && (
+                    <div className="flex justify-end mb-6">
+                      <div className="bg-blue-600 text-white px-6 py-3 rounded-2xl max-w-2xl shadow-sm">
+                        {msg.content}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {msg.role === 'assistant' && (
+                    <div className="space-y-6">
+                      {msg.type === 'properties' && msg.data && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                          {msg.data.map((property: Property) => (
+                            <PropertyCard key={property.id} property={property} />
+                          ))}
+                        </div>
+                      )}
+                      
+                      {msg.type === 'underwriting' && (
+                        <div className="flex justify-center mb-8">
+                          <UnderwritingChart data={msg.data} />
+                        </div>
+                      )}
+                      
+                      {msg.type === 'loi' && (
+                        <div className="flex justify-center mb-8">
+                          <LOIDocument />
+                        </div>
+                      )}
+                      
+                      <div className="text-gray-700 text-lg leading-relaxed bg-white rounded-2xl px-6 py-4 shadow-sm border border-gray-100">
+                        {msg.content}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
-              
-              {msg.role === 'assistant' && (
-                <div className="space-y-4">
-                  {msg.type === 'properties' && msg.data && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                      {msg.data.map((property: Property) => (
-                        <PropertyCard key={property.id} property={property} />
-                      ))}
-                    </div>
-                  )}
-                  
-                  {msg.type === 'underwriting' && (
-                    <div className="flex justify-center mb-6">
-                      <UnderwritingChart />
-                    </div>
-                  )}
-                  
-                  {msg.type === 'loi' && (
-                    <div className="flex justify-center mb-6">
-                      <LOIDocument />
-                    </div>
-                  )}
-                  
-                  <div className="text-gray-700 mb-6">{msg.content}</div>
-                </div>
-              )}
+              ))}
             </div>
-          ))}
+          </div>
+        )}
           
-          {loading && (
-            <div className="flex justify-start mb-4">
-              <div className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg">
-                Thinking ...
+        {loading && (
+          <div className="flex justify-center mb-8">
+            <div className="bg-white text-gray-700 px-6 py-3 rounded-2xl shadow-sm border border-gray-100 flex items-center space-x-3">
+              <div className="flex space-x-1">
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
               </div>
+              <span className="text-gray-600">RETS is thinking...</span>
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Input Section - appears after first message */}
         {chatHistory.length > 0 && (
-          <div className="sticky bottom-6">
-            <div className="relative max-w-2xl mx-auto">
-              <div className="flex items-center bg-white rounded-full shadow-sm border border-blue-200 px-4 py-3">
-                <div className="w-5 h-5 bg-gray-400 rounded mr-3"></div>
-                <input
-                  type="text"
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  onKeyDown={handleKeyPress}
-                  placeholder="Message RETS"
-                  className="flex-1 outline-none text-gray-700 placeholder-gray-500"
-                />
-                <button
-                  onClick={sendMessage}
-                  disabled={loading || !message.trim()}
-                  className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center hover:bg-blue-700 disabled:opacity-50 ml-2"
-                >
-                  →
-                </button>
+          <div className="sticky bottom-6 z-20">
+            <div className="max-w-3xl mx-auto px-6">
+              <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200 p-4">
+                <div className="flex items-center space-x-4">
+                  <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-xs">💬</span>
+                  </div>
+                  <input
+                    type="text"
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    onKeyDown={handleKeyPress}
+                    placeholder="Message RETS"
+                    className="flex-1 outline-none text-gray-800 placeholder-gray-500 bg-transparent"
+                  />
+                  <button
+                    onClick={sendMessage}
+                    disabled={loading || !message.trim()}
+                    className="w-10 h-10 bg-blue-600 text-white rounded-xl flex items-center justify-center hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                  >
+                    {loading ? '...' : '→'}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
