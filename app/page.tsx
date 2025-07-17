@@ -80,8 +80,22 @@ export default function HomePage() {
     const newHistory = [...chatHistory, { role: 'user' as const, content: message }];
     setChatHistory(newHistory);
     
-    // Simulate different response types based on message content
-    setTimeout(() => {
+    try {
+      // Call the actual API endpoint
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ messages: newHistory })
+      });
+      
+      if (!res.ok) {
+        throw new Error('API request failed');
+      }
+      
+      const apiResponse = await res.json();
+      
       let response: Message;
       
       if (message.toLowerCase().includes('find') || message.toLowerCase().includes('properties') || message.toLowerCase().includes('seattle')) {
@@ -108,15 +122,24 @@ export default function HomePage() {
       } else {
         response = {
           role: 'assistant',
-          content: 'I\'m RETS AI, your real estate assistant. I can help you find properties, generate underwriting analysis, and create LOI documents. What would you like me to help you with?',
+          content: apiResponse.message || 'I\'m RETS AI, your real estate assistant. How can I help you?',
           type: 'text'
         };
       }
       
       setChatHistory([...newHistory, response]);
-      setLoading(false);
-      setMessage('');
-    }, 1500);
+    } catch (error) {
+      console.error('API Error:', error);
+      const errorResponse: Message = {
+        role: 'assistant',
+        content: 'I apologize, but I\'m having trouble connecting right now. Please try again.',
+        type: 'text'
+      };
+      setChatHistory([...newHistory, errorResponse]);
+    }
+    
+    setLoading(false);
+    setMessage('');
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
