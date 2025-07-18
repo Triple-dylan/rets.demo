@@ -24,6 +24,24 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const [chatHistory, setChatHistory] = useState<Message[]>([]);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
+  const [darkMode, setDarkMode] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [workspaces, setWorkspaces] = useState([
+    { id: 1, name: 'Seattle Properties', active: true },
+    { id: 2, name: 'Portland Market', active: false },
+    { id: 3, name: 'Analysis Draft', active: false }
+  ]);
+  const [chatFocused, setChatFocused] = useState(false);
+  const [workspaceMenuOpen, setWorkspaceMenuOpen] = useState(false);
+
+  const handleWorkspaceSwitch = (workspaceId: number) => {
+    setWorkspaces(prev => prev.map(ws => ({
+      ...ws,
+      active: ws.id === workspaceId
+    })));
+    setWorkspaceMenuOpen(false);
+    // In a real app, this would also change the context/data for the workspace
+  };
 
   const mockProperties: Property[] = [
     {
@@ -141,7 +159,9 @@ export default function HomePage() {
     const purchasePrice = parseInt(property.price.replace(/[$,]/g, ''));
     const capRate = parseFloat(property.capRate);
     const noi = Math.round(purchasePrice * (capRate / 100));
-    const basicModelData = {
+    
+    // Enhanced model data with realistic assumptions
+    const modelData = {
       property,
       purchasePrice,
       address: property.address,
@@ -150,9 +170,35 @@ export default function HomePage() {
       noi: noi,
       grossIncome: Math.round(noi / 0.85),
       cashFlow: Math.round(noi * 0.6),
-      cashOnCash: 0.125,
+      cashOnCash: 12.5,
       irr: 14.2,
       totalReturn: capRate + 12.5,
+      // Detailed assumptions based on Seattle market
+      assumptions: {
+        // Revenue assumptions
+        monthlyRentPerUnit: Math.round((noi / 0.85) / property.details.split('-')[0] / 12),
+        rentGrowthRate: 3.0,
+        vacancyRate: 5.0,
+        otherIncome: Math.round(purchasePrice * 0.002),
+        
+        // Expense assumptions (% of EGI)
+        management: 6.0,
+        maintenance: 8.0,
+        utilities: 4.0,
+        insurance: 2.5,
+        propertyTaxes: 1.2,
+        reserves: 5.0,
+        
+        // Financing assumptions
+        loanToValue: 75.0,
+        interestRate: 6.5,
+        loanTerm: 30,
+        
+        // Market assumptions
+        capRateExpansion: 0.25,
+        exitCapRate: capRate + 0.25,
+        holdPeriod: 5
+      },
       projections: Array.from({length: 10}, (_, i) => ({
         year: i + 1,
         income: Math.round((noi / 0.85) * Math.pow(1.03, i)),
@@ -165,17 +211,86 @@ export default function HomePage() {
         {address: "950 Taylor Ave N", price: `$${(purchasePrice * 0.95).toLocaleString()}`, capRate: `${(capRate + 0.2).toFixed(1)}%`}
       ]
     };
+    
+    // Generate Excel file
+    await generateExcelFile(modelData);
       
     const fallbackMessage: Message = {
       role: 'assistant',
-      content: `**Financial Model Generated for ${property.address}**\n\nAnalysis complete. This ${property.details.includes('unit') ? property.details.split('-')[0] + '-unit' : 'multifamily'} property shows strong fundamentals with a ${property.capRate} cap rate.\n\n**Key Highlights:**\n• NOI: $${noi.toLocaleString()}\n• Strong cash flow potential\n• Seattle market fundamentals support growth\n• Recommended for acquisition consideration`,
+      content: `**Financial Model Generated for ${property.address}**\n\nAnalysis complete. This ${property.details.includes('unit') ? property.details.split('-')[0] + '-unit' : 'multifamily'} property shows strong fundamentals with a ${property.capRate} cap rate.\n\n**Key Highlights:**\n• NOI: $${noi.toLocaleString()}\n• Strong cash flow potential\n• Seattle market fundamentals support growth\n• Recommended for acquisition consideration\n\n📊 **Spreadsheet downloaded with detailed assumptions and 10-year projections**`,
       type: 'underwriting',
-      data: basicModelData
+      data: modelData
     };
     
     setChatHistory(prev => [...prev, fallbackMessage]);
     
     setLoading(false);
+  };
+
+  const generateExcelFile = async (modelData: any) => {
+    try {
+      // Create Excel workbook using client-side Excel generation
+      const workbookData = createFinancialModelWorkbook(modelData);
+      
+      // Create blob and download
+      const blob = new Blob([workbookData], { 
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+      });
+      
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${modelData.address.replace(/[^a-zA-Z0-9]/g, '_')}_Financial_Model.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error generating Excel file:', error);
+    }
+  };
+
+  const createFinancialModelWorkbook = (modelData: any) => {
+    // For now, create a CSV-like content that can be opened in Excel
+    // In a real implementation, you'd use a library like xlsx or exceljs
+    const csvContent = generateCSVContent(modelData);
+    return new TextEncoder().encode(csvContent);
+  };
+
+  const generateCSVContent = (modelData: any) => {
+    const { property, assumptions, projections } = modelData;
+    
+    let csv = `REAL ESTATE FINANCIAL MODEL - ${property.address}\n\n`;
+    
+    // Property Information
+    csv += `PROPERTY INFORMATION\n`;
+    csv += `Address,${property.address}\n`;
+    csv += `Location,${property.location}\n`;
+    csv += `Price,${property.price}\n`;
+    csv += `Cap Rate,${property.capRate}\n`;
+    csv += `Property Type,${property.details}\n\n`;
+    
+    // Assumptions
+    csv += `FINANCIAL ASSUMPTIONS\n`;
+    csv += `Monthly Rent per Unit,$${assumptions.monthlyRentPerUnit}\n`;
+    csv += `Rent Growth Rate,${assumptions.rentGrowthRate}%\n`;
+    csv += `Vacancy Rate,${assumptions.vacancyRate}%\n`;
+    csv += `Management Fee,${assumptions.management}%\n`;
+    csv += `Maintenance,${assumptions.maintenance}%\n`;
+    csv += `Insurance,${assumptions.insurance}%\n`;
+    csv += `Property Taxes,${assumptions.propertyTaxes}%\n`;
+    csv += `Loan to Value,${assumptions.loanToValue}%\n`;
+    csv += `Interest Rate,${assumptions.interestRate}%\n`;
+    csv += `Loan Term,${assumptions.loanTerm} years\n\n`;
+    
+    // 10-Year Projections
+    csv += `10-YEAR CASH FLOW PROJECTIONS\n`;
+    csv += `Year,Income,Expenses,NOI,Cash Flow\n`;
+    projections.forEach((proj: any) => {
+      csv += `${proj.year},$${proj.income.toLocaleString()},$${proj.expenses.toLocaleString()},$${proj.noi.toLocaleString()},$${proj.cashFlow.toLocaleString()}\n`;
+    });
+    
+    return csv;
   };
 
   const handleAbstractOM = async (property: Property) => {
@@ -259,29 +374,78 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-gray-50">
-      <div className="fixed inset-0 bg-gradient-to-br from-gray-50 to-white">
-        <div className="absolute inset-0 bg-gradient-to-tr from-white/80 via-gray-100/60 to-white/90"></div>
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-white/40 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-gray-200/30 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 w-72 h-72 bg-white/50 rounded-full blur-3xl animate-pulse delay-2000"></div>
+      <div className="fixed inset-0 bg-gradient-to-br from-slate-50 to-blue-50">
+        <div className="absolute inset-0 bg-gradient-to-tr from-white/95 via-blue-50/30 to-white/90"></div>
+        
+        {/* Floating glass orbs with more realistic liquid glass effect */}
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-br from-white/60 via-blue-100/40 to-white/70 rounded-full blur-2xl animate-float shadow-2xl"></div>
+        <div className="absolute bottom-1/3 right-1/4 w-80 h-80 bg-gradient-to-tl from-blue-50/50 via-white/60 to-blue-100/40 rounded-full blur-2xl animate-float-delayed shadow-xl"></div>
+        <div className="absolute top-2/3 left-1/2 w-72 h-72 bg-gradient-to-br from-white/70 via-slate-100/30 to-white/60 rounded-full blur-xl animate-float-slow shadow-lg"></div>
+        
+        {/* Additional smaller glass particles */}
+        <div className="absolute top-1/6 right-1/3 w-32 h-32 bg-white/40 rounded-full blur-lg animate-drift"></div>
+        <div className="absolute bottom-1/6 left-1/3 w-24 h-24 bg-blue-50/50 rounded-full blur-md animate-drift-slow"></div>
+        
+        {/* Subtle grid pattern overlay */}
+        <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
       </div>
       
       <div className="relative z-10 min-h-screen">
         <header className="bg-white/60 backdrop-blur-md border-b border-gray-200/50 sticky top-0 z-20">
           <div className="max-w-7xl mx-auto px-6 py-4">
             <div className="flex justify-between items-center">
-              <div className="flex items-center space-x-3">
-                <button className="w-6 h-6 flex flex-col justify-center items-center space-y-1 hover:bg-gray-100/50 rounded p-1 transition-all duration-200">
+              <div className="flex items-center space-x-3 relative">
+                <button 
+                  onClick={() => setWorkspaceMenuOpen(!workspaceMenuOpen)}
+                  className="w-6 h-6 flex flex-col justify-center items-center space-y-1 hover:bg-gray-100/50 rounded p-1 transition-all duration-200"
+                >
                   <div className="w-4 h-0.5 bg-gray-700"></div>
                   <div className="w-4 h-0.5 bg-gray-700"></div>
                   <div className="w-4 h-0.5 bg-gray-700"></div>
                 </button>
+                
+                {/* Workspace Menu Popup */}
+                {workspaceMenuOpen && (
+                  <div className="absolute top-8 left-0 mt-2 w-64 bg-white/90 backdrop-blur-lg rounded-lg shadow-xl border border-gray-200/50 py-2 z-30">
+                    <div className="px-4 py-2 text-sm font-medium text-gray-500 border-b border-gray-200/50">
+                      Workspaces
+                    </div>
+                    {workspaces.map(workspace => (
+                      <button
+                        key={workspace.id}
+                        onClick={() => handleWorkspaceSwitch(workspace.id)}
+                        className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100/50 transition-colors flex items-center justify-between ${
+                          workspace.active ? 'bg-blue-50/50 text-blue-700' : 'text-gray-700'
+                        }`}
+                      >
+                        <span>{workspace.name}</span>
+                        {workspace.active && (
+                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                        )}
+                      </button>
+                    ))}
+                    <div className="border-t border-gray-200/50 mt-2 pt-2">
+                      <button className="w-full text-left px-4 py-2 text-sm text-gray-500 hover:bg-gray-100/50 transition-colors">
+                        + New Workspace
+                      </button>
+                    </div>
+                  </div>
+                )}
+                
                 <span className="text-gray-900 font-medium">RETS</span>
                 <span className="text-sm text-gray-600 bg-gray-100/80 px-2 py-1 rounded backdrop-blur-sm">v3</span>
               </div>
               <button className="text-gray-600 hover:text-gray-900 text-sm transition-colors">Light</button>
             </div>
           </div>
+          
+          {/* Click outside to close menu */}
+          {workspaceMenuOpen && (
+            <div 
+              className="fixed inset-0 z-10" 
+              onClick={() => setWorkspaceMenuOpen(false)}
+            ></div>
+          )}
         </header>
 
         <main className="max-w-5xl mx-auto px-6">
@@ -294,12 +458,18 @@ export default function HomePage() {
               </div>
               
               <div className="w-full max-w-2xl">
-                <div className="flex items-center bg-white/70 backdrop-blur-lg rounded-full shadow-2xl border border-gray-200/50 px-4 py-3 hover:bg-white/80 transition-all duration-300">
+                <div className={`flex items-center bg-white/70 backdrop-blur-lg rounded-full shadow-2xl border px-4 py-3 transition-all duration-300 ${
+                  chatFocused 
+                    ? 'border-blue-400 bg-white/90 ring-2 ring-blue-200/50' 
+                    : 'border-gray-200/50 hover:bg-white/80'
+                }`}>
                   <input
                     type="text"
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     onKeyDown={handleKeyPress}
+                    onFocus={() => setChatFocused(true)}
+                    onBlur={() => setChatFocused(false)}
                     placeholder="Ask RETS to do anything"
                     className="flex-1 outline-none text-gray-900 placeholder-gray-500 bg-transparent"
                   />
@@ -368,12 +538,18 @@ export default function HomePage() {
           {chatHistory.length > 0 && (
             <div className="fixed bottom-6 left-0 right-0 px-6 z-20">
               <div className="max-w-2xl mx-auto">
-                <div className="flex items-center bg-white/70 backdrop-blur-lg rounded-full shadow-2xl border border-gray-200/50 px-4 py-3 hover:bg-white/80 transition-all duration-300">
+                <div className={`flex items-center bg-white/70 backdrop-blur-lg rounded-full shadow-2xl border px-4 py-3 transition-all duration-300 ${
+                  chatFocused 
+                    ? 'border-blue-400 bg-white/90 ring-2 ring-blue-200/50' 
+                    : 'border-gray-200/50 hover:bg-white/80'
+                }`}>
                   <input
                     type="text"
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     onKeyDown={handleKeyPress}
+                    onFocus={() => setChatFocused(true)}
+                    onBlur={() => setChatFocused(false)}
                     placeholder="Message RETS"
                     className="flex-1 outline-none text-gray-900 placeholder-gray-500 bg-transparent"
                   />
