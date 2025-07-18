@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 
 interface Property {
   id: number;
@@ -25,6 +25,20 @@ export default function HomePage() {
   const [chatHistory, setChatHistory] = useState<Message[]>([]);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [darkMode, setDarkMode] = useState(false);
+  
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+    // Persist theme preference
+    localStorage.setItem('darkMode', (!darkMode).toString());
+  };
+
+  // Load theme preference on mount
+  React.useEffect(() => {
+    const savedMode = localStorage.getItem('darkMode');
+    if (savedMode) {
+      setDarkMode(savedMode === 'true');
+    }
+  }, []);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [workspaces, setWorkspaces] = useState([
     { id: 1, name: 'Seattle Properties', active: true },
@@ -32,14 +46,14 @@ export default function HomePage() {
     { id: 3, name: 'Analysis Draft', active: false }
   ]);
   const [chatFocused, setChatFocused] = useState(false);
-  const [workspaceMenuOpen, setWorkspaceMenuOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleWorkspaceSwitch = (workspaceId: number) => {
     setWorkspaces(prev => prev.map(ws => ({
       ...ws,
       active: ws.id === workspaceId
     })));
-    setWorkspaceMenuOpen(false);
+    setSidebarOpen(false);
     // In a real app, this would also change the context/data for the workspace
   };
 
@@ -373,95 +387,212 @@ export default function HomePage() {
   );
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gray-50">
-      <div className="fixed inset-0 bg-gradient-to-br from-slate-50 to-blue-50">
-        <div className="absolute inset-0 bg-gradient-to-tr from-white/95 via-blue-50/30 to-white/90"></div>
+    <div className={`min-h-screen relative overflow-hidden transition-colors duration-300 ${
+      darkMode ? 'bg-gray-900' : 'bg-gray-50'
+    }`}>
+      <div className={`fixed inset-0 transition-colors duration-300 ${
+        darkMode 
+          ? 'bg-gradient-to-br from-gray-900 to-gray-800' 
+          : 'bg-gradient-to-br from-slate-50 to-blue-50'
+      }`}>
+        <div className={`absolute inset-0 transition-colors duration-300 ${
+          darkMode
+            ? 'bg-gradient-to-tr from-gray-800/95 via-gray-700/30 to-gray-800/90'
+            : 'bg-gradient-to-tr from-white/95 via-blue-50/30 to-white/90'
+        }`}></div>
         
         {/* Floating glass orbs with more realistic liquid glass effect */}
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-br from-white/60 via-blue-100/40 to-white/70 rounded-full blur-2xl animate-float shadow-2xl"></div>
-        <div className="absolute bottom-1/3 right-1/4 w-80 h-80 bg-gradient-to-tl from-blue-50/50 via-white/60 to-blue-100/40 rounded-full blur-2xl animate-float-delayed shadow-xl"></div>
-        <div className="absolute top-2/3 left-1/2 w-72 h-72 bg-gradient-to-br from-white/70 via-slate-100/30 to-white/60 rounded-full blur-xl animate-float-slow shadow-lg"></div>
+        <div className={`absolute top-1/4 left-1/4 w-96 h-96 rounded-full blur-2xl animate-float shadow-2xl transition-colors duration-300 ${
+          darkMode 
+            ? 'bg-gradient-to-br from-gray-700/60 via-gray-600/40 to-gray-700/70' 
+            : 'bg-gradient-to-br from-white/60 via-blue-100/40 to-white/70'
+        }`}></div>
+        <div className={`absolute bottom-1/3 right-1/4 w-80 h-80 rounded-full blur-2xl animate-float-delayed shadow-xl transition-colors duration-300 ${
+          darkMode
+            ? 'bg-gradient-to-tl from-gray-600/50 via-gray-700/60 to-gray-600/40'
+            : 'bg-gradient-to-tl from-blue-50/50 via-white/60 to-blue-100/40'
+        }`}></div>
+        <div className={`absolute top-2/3 left-1/2 w-72 h-72 rounded-full blur-xl animate-float-slow shadow-lg transition-colors duration-300 ${
+          darkMode
+            ? 'bg-gradient-to-br from-gray-700/70 via-gray-800/30 to-gray-700/60'
+            : 'bg-gradient-to-br from-white/70 via-slate-100/30 to-white/60'
+        }`}></div>
         
         {/* Additional smaller glass particles */}
-        <div className="absolute top-1/6 right-1/3 w-32 h-32 bg-white/40 rounded-full blur-lg animate-drift"></div>
-        <div className="absolute bottom-1/6 left-1/3 w-24 h-24 bg-blue-50/50 rounded-full blur-md animate-drift-slow"></div>
+        <div className={`absolute top-1/6 right-1/3 w-32 h-32 rounded-full blur-lg animate-drift transition-colors duration-300 ${
+          darkMode ? 'bg-gray-700/40' : 'bg-white/40'
+        }`}></div>
+        <div className={`absolute bottom-1/6 left-1/3 w-24 h-24 rounded-full blur-md animate-drift-slow transition-colors duration-300 ${
+          darkMode ? 'bg-gray-600/50' : 'bg-blue-50/50'
+        }`}></div>
         
         {/* Subtle grid pattern overlay */}
         <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
       </div>
       
       <div className="relative z-10 min-h-screen">
-        <header className="bg-white/60 backdrop-blur-md border-b border-gray-200/50 sticky top-0 z-20">
+        <header className={`backdrop-blur-md border-b sticky top-0 z-20 transition-colors duration-300 ${
+          darkMode 
+            ? 'bg-gray-800/60 border-gray-700/50' 
+            : 'bg-white/60 border-gray-200/50'
+        }`}>
           <div className="max-w-7xl mx-auto px-6 py-4">
             <div className="flex justify-between items-center">
-              <div className="flex items-center space-x-3 relative">
+              <div className="flex items-center space-x-3">
                 <button 
-                  onClick={() => setWorkspaceMenuOpen(!workspaceMenuOpen)}
-                  className="w-6 h-6 flex flex-col justify-center items-center space-y-1 hover:bg-gray-100/50 rounded p-1 transition-all duration-200"
+                  onClick={() => setSidebarOpen(true)}
+                  className={`w-6 h-6 flex flex-col justify-center items-center space-y-1 rounded p-1 transition-all duration-200 ${
+                    darkMode ? 'hover:bg-gray-700/50' : 'hover:bg-gray-100/50'
+                  }`}
                 >
-                  <div className="w-4 h-0.5 bg-gray-700"></div>
-                  <div className="w-4 h-0.5 bg-gray-700"></div>
-                  <div className="w-4 h-0.5 bg-gray-700"></div>
+                  <div className={`w-4 h-0.5 transition-colors duration-300 ${
+                    darkMode ? 'bg-gray-300' : 'bg-gray-700'
+                  }`}></div>
+                  <div className={`w-4 h-0.5 transition-colors duration-300 ${
+                    darkMode ? 'bg-gray-300' : 'bg-gray-700'
+                  }`}></div>
+                  <div className={`w-4 h-0.5 transition-colors duration-300 ${
+                    darkMode ? 'bg-gray-300' : 'bg-gray-700'
+                  }`}></div>
                 </button>
-                
-                {/* Workspace Menu Popup */}
-                {workspaceMenuOpen && (
-                  <div className="absolute top-8 left-0 mt-2 w-64 bg-white/90 backdrop-blur-lg rounded-lg shadow-xl border border-gray-200/50 py-2 z-30">
-                    <div className="px-4 py-2 text-sm font-medium text-gray-500 border-b border-gray-200/50">
-                      Workspaces
-                    </div>
-                    {workspaces.map(workspace => (
-                      <button
-                        key={workspace.id}
-                        onClick={() => handleWorkspaceSwitch(workspace.id)}
-                        className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100/50 transition-colors flex items-center justify-between ${
-                          workspace.active ? 'bg-blue-50/50 text-blue-700' : 'text-gray-700'
-                        }`}
-                      >
-                        <span>{workspace.name}</span>
-                        {workspace.active && (
-                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                        )}
-                      </button>
-                    ))}
-                    <div className="border-t border-gray-200/50 mt-2 pt-2">
-                      <button className="w-full text-left px-4 py-2 text-sm text-gray-500 hover:bg-gray-100/50 transition-colors">
-                        + New Workspace
-                      </button>
-                    </div>
-                  </div>
-                )}
-                
-                <span className="text-gray-900 font-medium">RETS</span>
-                <span className="text-sm text-gray-600 bg-gray-100/80 px-2 py-1 rounded backdrop-blur-sm">v3</span>
+                <span className={`font-medium transition-colors duration-300 ${
+                  darkMode ? 'text-gray-100' : 'text-gray-900'
+                }`}>RETS</span>
+                <span className={`text-sm px-2 py-1 rounded backdrop-blur-sm transition-colors duration-300 ${
+                  darkMode 
+                    ? 'text-gray-400 bg-gray-700/80' 
+                    : 'text-gray-600 bg-gray-100/80'
+                }`}>v3</span>
               </div>
-              <button className="text-gray-600 hover:text-gray-900 text-sm transition-colors">Light</button>
+              <button 
+                onClick={toggleDarkMode}
+                className={`text-sm transition-colors px-3 py-1 rounded-md ${
+                  darkMode 
+                    ? 'text-gray-300 hover:text-gray-100 hover:bg-gray-700/50' 
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100/50'
+                }`}
+              >
+                {darkMode ? 'Light' : 'Dark'}
+              </button>
             </div>
           </div>
-          
-          {/* Click outside to close menu */}
-          {workspaceMenuOpen && (
-            <div 
-              className="fixed inset-0 z-10" 
-              onClick={() => setWorkspaceMenuOpen(false)}
-            ></div>
-          )}
         </header>
+
+        {/* Slide-out Sidebar */}
+        <div className={`fixed inset-y-0 left-0 z-50 w-80 transform transition-transform duration-300 ease-in-out ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}>
+          <div className="flex h-full">
+            <div className={`flex flex-col w-full backdrop-blur-lg border-r shadow-xl transition-colors duration-300 ${
+              darkMode 
+                ? 'bg-gray-800/95 border-gray-700/50' 
+                : 'bg-white/95 border-gray-200/50'
+            }`}>
+              {/* Sidebar Header */}
+              <div className={`flex items-center justify-between p-4 border-b transition-colors duration-300 ${
+                darkMode ? 'border-gray-700/50' : 'border-gray-200/50'
+              }`}>
+                <h2 className={`text-lg font-semibold transition-colors duration-300 ${
+                  darkMode ? 'text-gray-100' : 'text-gray-900'
+                }`}>Workspaces</h2>
+                <button
+                  onClick={() => setSidebarOpen(false)}
+                  className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors ${
+                    darkMode ? 'hover:bg-gray-700/50' : 'hover:bg-gray-100/50'
+                  }`}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+              </div>
+
+              {/* Workspace List */}
+              <div className="flex-1 overflow-y-auto">
+                <div className="p-4 space-y-2">
+                  {workspaces.map(workspace => (
+                    <button
+                      key={workspace.id}
+                      onClick={() => handleWorkspaceSwitch(workspace.id)}
+                      className={`w-full text-left p-3 rounded-lg transition-colors flex items-center justify-between group ${
+                        workspace.active 
+                          ? darkMode
+                            ? 'bg-blue-900/50 text-blue-300 border border-blue-700/50' 
+                            : 'bg-blue-50 text-blue-700 border border-blue-200'
+                          : darkMode
+                            ? 'hover:bg-gray-700/50 text-gray-300'
+                            : 'hover:bg-gray-50 text-gray-700'
+                      }`}
+                    >
+                      <div>
+                        <div className="font-medium">{workspace.name}</div>
+                        <div className={`text-sm mt-1 transition-colors duration-300 ${
+                          darkMode ? 'text-gray-400' : 'text-gray-500'
+                        }`}>
+                          {workspace.active ? 'Current workspace' : 'Switch to this workspace'}
+                        </div>
+                      </div>
+                      {workspace.active && (
+                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Add New Workspace */}
+                <div className={`p-4 border-t transition-colors duration-300 ${
+                  darkMode ? 'border-gray-700/50' : 'border-gray-200/50'
+                }`}>
+                  <button className={`w-full text-left p-3 rounded-lg transition-colors border-2 border-dashed ${
+                    darkMode 
+                      ? 'hover:bg-gray-700/50 text-gray-400 border-gray-600 hover:border-gray-500' 
+                      : 'hover:bg-gray-50 text-gray-600 border-gray-300 hover:border-gray-400'
+                  }`}>
+                    <div className="flex items-center space-x-3">
+                      <div className={`w-6 h-6 rounded flex items-center justify-center transition-colors duration-300 ${
+                        darkMode ? 'bg-gray-700' : 'bg-gray-100'
+                      }`}>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </div>
+                      <span className="font-medium">New Workspace</span>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Sidebar Overlay */}
+        {sidebarOpen && (
+          <div 
+            className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm" 
+            onClick={() => setSidebarOpen(false)}
+          ></div>
+        )}
 
         <main className="max-w-5xl mx-auto px-6">
           {chatHistory.length === 0 && (
             <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)]">
               <div className="text-center mb-16">
-                <h1 className="text-4xl font-bold text-gray-900 mb-16">
+                <h1 className={`text-4xl font-bold mb-16 transition-colors duration-300 ${
+                  darkMode ? 'text-gray-100' : 'text-gray-900'
+                }`}>
                   Who needs manual tasks? Ask RETS instead.
                 </h1>
               </div>
               
               <div className="w-full max-w-2xl">
-                <div className={`flex items-center bg-white/70 backdrop-blur-lg rounded-full shadow-2xl border px-4 py-3 transition-all duration-300 ${
-                  chatFocused 
-                    ? 'border-blue-400 bg-white/90 ring-2 ring-blue-200/50' 
-                    : 'border-gray-200/50 hover:bg-white/80'
+                <div className={`flex items-center backdrop-blur-lg rounded-full shadow-2xl border px-4 py-3 transition-all duration-300 ${
+                  darkMode 
+                    ? chatFocused 
+                      ? 'bg-gray-800/90 border-blue-400 ring-2 ring-blue-400/50' 
+                      : 'bg-gray-800/70 border-gray-600/50 hover:bg-gray-800/80'
+                    : chatFocused 
+                      ? 'border-blue-400 bg-white/90 ring-2 ring-blue-200/50' 
+                      : 'border-gray-200/50 hover:bg-white/80 bg-white/70'
                 }`}>
                   <input
                     type="text"
@@ -471,7 +602,11 @@ export default function HomePage() {
                     onFocus={() => setChatFocused(true)}
                     onBlur={() => setChatFocused(false)}
                     placeholder="Ask RETS to do anything"
-                    className="flex-1 outline-none text-gray-900 placeholder-gray-500 bg-transparent"
+                    className={`flex-1 outline-none bg-transparent transition-colors duration-300 ${
+                      darkMode 
+                        ? 'text-gray-100 placeholder-gray-400' 
+                        : 'text-gray-900 placeholder-gray-500'
+                    }`}
                   />
                   <button
                     onClick={sendMessage}
@@ -483,7 +618,9 @@ export default function HomePage() {
                     </svg>
                   </button>
                 </div>
-                <div className="text-sm text-gray-600 mt-2 text-center">RETS.ai can make mistakes. Verify for accuracy.</div>
+                <div className={`text-sm mt-2 text-center transition-colors duration-300 ${
+                  darkMode ? 'text-gray-400' : 'text-gray-600'
+                }`}>RETS.ai can make mistakes. Verify for accuracy.</div>
               </div>
             </div>
           )}
@@ -538,10 +675,14 @@ export default function HomePage() {
           {chatHistory.length > 0 && (
             <div className="fixed bottom-6 left-0 right-0 px-6 z-20">
               <div className="max-w-2xl mx-auto">
-                <div className={`flex items-center bg-white/70 backdrop-blur-lg rounded-full shadow-2xl border px-4 py-3 transition-all duration-300 ${
-                  chatFocused 
-                    ? 'border-blue-400 bg-white/90 ring-2 ring-blue-200/50' 
-                    : 'border-gray-200/50 hover:bg-white/80'
+                <div className={`flex items-center backdrop-blur-lg rounded-full shadow-2xl border px-4 py-3 transition-all duration-300 ${
+                  darkMode 
+                    ? chatFocused 
+                      ? 'bg-gray-800/90 border-blue-400 ring-2 ring-blue-400/50' 
+                      : 'bg-gray-800/70 border-gray-600/50 hover:bg-gray-800/80'
+                    : chatFocused 
+                      ? 'border-blue-400 bg-white/90 ring-2 ring-blue-200/50' 
+                      : 'border-gray-200/50 hover:bg-white/80 bg-white/70'
                 }`}>
                   <input
                     type="text"
@@ -551,7 +692,11 @@ export default function HomePage() {
                     onFocus={() => setChatFocused(true)}
                     onBlur={() => setChatFocused(false)}
                     placeholder="Message RETS"
-                    className="flex-1 outline-none text-gray-900 placeholder-gray-500 bg-transparent"
+                    className={`flex-1 outline-none bg-transparent transition-colors duration-300 ${
+                      darkMode 
+                        ? 'text-gray-100 placeholder-gray-400' 
+                        : 'text-gray-900 placeholder-gray-500'
+                    }`}
                   />
                   <button
                     onClick={sendMessage}
