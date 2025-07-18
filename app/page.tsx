@@ -46,7 +46,6 @@ export default function HomePage() {
     { id: 3, name: 'Analysis Draft', active: false }
   ]);
   const [chatFocused, setChatFocused] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleWorkspaceSwitch = (workspaceId: number) => {
     setWorkspaces(prev => prev.map(ws => ({
