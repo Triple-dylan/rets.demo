@@ -430,6 +430,29 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
       </div>
       
+      {/* Left sidebar trigger bar */}
+      <div className={`fixed left-0 top-0 h-full w-1 z-30 transition-colors duration-300 ${
+        darkMode ? 'bg-gray-700/20' : 'bg-gray-200/30'
+      }`}></div>
+      
+      {/* Hamburger button in far left corner */}
+      <button 
+        onClick={() => setSidebarOpen(true)}
+        className={`fixed left-2 top-4 z-30 w-8 h-8 flex flex-col justify-center items-center space-y-1 rounded-lg transition-all duration-200 ${
+          darkMode ? 'hover:bg-gray-800/80 bg-gray-900/50' : 'hover:bg-white/80 bg-white/50'
+        } backdrop-blur-sm shadow-lg`}
+      >
+        <div className={`w-4 h-0.5 transition-colors duration-300 ${
+          darkMode ? 'bg-gray-300' : 'bg-gray-700'
+        }`}></div>
+        <div className={`w-4 h-0.5 transition-colors duration-300 ${
+          darkMode ? 'bg-gray-300' : 'bg-gray-700'
+        }`}></div>
+        <div className={`w-4 h-0.5 transition-colors duration-300 ${
+          darkMode ? 'bg-gray-300' : 'bg-gray-700'
+        }`}></div>
+      </button>
+
       <div className="relative z-10 min-h-screen">
         <header className={`backdrop-blur-md border-b sticky top-0 z-20 transition-colors duration-300 ${
           darkMode 
@@ -438,23 +461,7 @@ export default function HomePage() {
         }`}>
           <div className="max-w-7xl mx-auto px-6 py-4">
             <div className="flex justify-between items-center">
-              <div className="flex items-center space-x-3">
-                <button 
-                  onClick={() => setSidebarOpen(true)}
-                  className={`w-6 h-6 flex flex-col justify-center items-center space-y-1 rounded p-1 transition-all duration-200 ${
-                    darkMode ? 'hover:bg-gray-700/50' : 'hover:bg-gray-100/50'
-                  }`}
-                >
-                  <div className={`w-4 h-0.5 transition-colors duration-300 ${
-                    darkMode ? 'bg-gray-300' : 'bg-gray-700'
-                  }`}></div>
-                  <div className={`w-4 h-0.5 transition-colors duration-300 ${
-                    darkMode ? 'bg-gray-300' : 'bg-gray-700'
-                  }`}></div>
-                  <div className={`w-4 h-0.5 transition-colors duration-300 ${
-                    darkMode ? 'bg-gray-300' : 'bg-gray-700'
-                  }`}></div>
-                </button>
+              <div className="flex items-center space-x-3 ml-8">
                 <span className={`font-medium transition-colors duration-300 ${
                   darkMode ? 'text-gray-100' : 'text-gray-900'
                 }`}>RETS</span>
@@ -575,16 +582,15 @@ export default function HomePage() {
 
         <main className="max-w-5xl mx-auto px-6">
           {chatHistory.length === 0 && (
-            <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)]">
-              <div className="text-center mb-16">
-                <h1 className={`text-4xl font-bold mb-16 transition-colors duration-300 ${
-                  darkMode ? 'text-gray-100' : 'text-gray-900'
-                }`}>
-                  Who needs manual tasks? Ask RETS instead.
-                </h1>
-              </div>
-              
+            <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)]">              
               <div className="w-full max-w-2xl">
+                <div className="text-center mb-6">
+                  <h1 className={`text-3xl font-medium transition-colors duration-300 ${
+                    darkMode ? 'text-gray-100' : 'text-gray-900'
+                  }`}>
+                    Who needs manual processes? Ask RETS instead.
+                  </h1>
+                </div>
                 <div className={`flex items-center backdrop-blur-lg rounded-full shadow-2xl border px-4 py-3 transition-all duration-300 ${
                   darkMode 
                     ? chatFocused 
