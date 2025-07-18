@@ -1,9 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import OpenAI from 'openai';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+let openai: any = null;
+
+try {
+  if (process.env.OPENAI_API_KEY) {
+    const OpenAI = require('openai');
+    openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+  }
+} catch (error) {
+  console.warn('OpenAI not available, using mock responses');
+}
 
 // Real estate intelligence system prompts
 const SYSTEM_PROMPT = `You are RETS AI, an expert commercial real estate assistant with deep knowledge of:
