@@ -226,30 +226,29 @@ export default function HomePage() {
   };
 
   const PropertyCard = ({ property }: { property: Property }) => (
-    <div className="bg-white/20 backdrop-blur-lg rounded-lg shadow-lg border border-white/30 overflow-hidden hover:bg-white/25 transition-all duration-300 transform hover:scale-105">
-      <div className="h-28 bg-gradient-to-r from-blue-400/60 to-purple-400/60 relative">
-        <div className="absolute inset-0 bg-black/10"></div>
+    <div className="bg-white/70 backdrop-blur-lg rounded-lg shadow-lg border border-gray-200/50 overflow-hidden hover:bg-white/80 transition-all duration-300 transform hover:scale-105">
+      <div className="h-28 bg-gradient-to-r from-gray-100 to-gray-200 relative">
         <div className="absolute bottom-2 left-2">
-          <div className="text-white text-xs font-medium bg-black/30 backdrop-blur-sm px-2 py-1 rounded border border-white/20">
+          <div className="text-gray-700 text-xs font-medium bg-white/80 backdrop-blur-sm px-2 py-1 rounded border border-gray-300">
             {property.capRate} CAP
           </div>
         </div>
       </div>
       <div className="p-3">
-        <div className="text-sm font-bold text-white mb-1">{property.price}</div>
-        <div className="text-xs font-semibold text-white/90 mb-1">{property.address}</div>
-        <div className="text-xs text-white/70 mb-2">{property.location}</div>
-        <div className="text-xs text-white/80 mb-3">{property.details}</div>
+        <div className="text-sm font-bold text-gray-900 mb-1">{property.price}</div>
+        <div className="text-xs font-semibold text-gray-800 mb-1">{property.address}</div>
+        <div className="text-xs text-gray-600 mb-2">{property.location}</div>
+        <div className="text-xs text-gray-700 mb-3">{property.details}</div>
         <div className="flex space-x-2">
           <button 
             onClick={() => handleViewModel(property)}
-            className="text-xs text-blue-200 hover:text-blue-100 font-medium hover:underline transition-colors"
+            className="text-xs text-blue-600 hover:text-blue-800 font-medium hover:underline transition-colors"
           >
             View Model
           </button>
           <button 
             onClick={() => handleAbstractOM(property)}
-            className="text-xs text-blue-200 hover:text-blue-100 font-medium hover:underline transition-colors"
+            className="text-xs text-blue-600 hover:text-blue-800 font-medium hover:underline transition-colors"
           >
             Abstract OM
           </button>
@@ -259,28 +258,28 @@ export default function HomePage() {
   );
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      <div className="fixed inset-0 bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800">
-        <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/30 via-purple-500/20 to-pink-500/30"></div>
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-blue-400/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 w-72 h-72 bg-purple-400/20 rounded-full blur-3xl animate-pulse delay-2000"></div>
+    <div className="min-h-screen relative overflow-hidden bg-gray-50">
+      <div className="fixed inset-0 bg-gradient-to-br from-gray-50 to-white">
+        <div className="absolute inset-0 bg-gradient-to-tr from-white/80 via-gray-100/60 to-white/90"></div>
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-white/40 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-gray-200/30 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 w-72 h-72 bg-white/50 rounded-full blur-3xl animate-pulse delay-2000"></div>
       </div>
       
       <div className="relative z-10 min-h-screen">
-        <header className="bg-white/10 backdrop-blur-md border-b border-white/20 sticky top-0 z-20">
+        <header className="bg-white/60 backdrop-blur-md border-b border-gray-200/50 sticky top-0 z-20">
           <div className="max-w-7xl mx-auto px-6 py-4">
             <div className="flex justify-between items-center">
               <div className="flex items-center space-x-3">
-                <button className="w-6 h-6 flex flex-col justify-center items-center space-y-1 hover:bg-white/20 rounded p-1 transition-all duration-200">
-                  <div className="w-4 h-0.5 bg-white/80"></div>
-                  <div className="w-4 h-0.5 bg-white/80"></div>
-                  <div className="w-4 h-0.5 bg-white/80"></div>
+                <button className="w-6 h-6 flex flex-col justify-center items-center space-y-1 hover:bg-gray-100/50 rounded p-1 transition-all duration-200">
+                  <div className="w-4 h-0.5 bg-gray-700"></div>
+                  <div className="w-4 h-0.5 bg-gray-700"></div>
+                  <div className="w-4 h-0.5 bg-gray-700"></div>
                 </button>
-                <span className="text-white font-medium">RETS</span>
-                <span className="text-sm text-white/70 bg-white/20 px-2 py-1 rounded backdrop-blur-sm">v3</span>
+                <span className="text-gray-900 font-medium">RETS</span>
+                <span className="text-sm text-gray-600 bg-gray-100/80 px-2 py-1 rounded backdrop-blur-sm">v3</span>
               </div>
-              <button className="text-white/80 hover:text-white text-sm transition-colors">Light</button>
+              <button className="text-gray-600 hover:text-gray-900 text-sm transition-colors">Light</button>
             </div>
           </div>
         </header>
@@ -289,39 +288,32 @@ export default function HomePage() {
           {chatHistory.length === 0 && (
             <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)]">
               <div className="text-center mb-16">
-                <h1 className="text-4xl font-bold text-white mb-16 drop-shadow-lg">
+                <h1 className="text-4xl font-bold text-gray-900 mb-16">
                   Who needs manual tasks? Ask RETS instead.
                 </h1>
               </div>
               
               <div className="w-full max-w-2xl">
-                <div className="flex items-center bg-white/20 backdrop-blur-lg rounded-full shadow-2xl border border-white/30 px-4 py-3 hover:bg-white/25 transition-all duration-300">
-                  <div className="w-5 h-5 mr-3 flex items-center justify-center">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <rect x="3" y="11" width="18" height="10" rx="2" ry="2" stroke="white" strokeWidth="2" opacity="0.8"/>
-                      <circle cx="12" cy="16" r="1" fill="white" opacity="0.8"/>
-                      <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="white" strokeWidth="2" opacity="0.8"/>
-                    </svg>
-                  </div>
+                <div className="flex items-center bg-white/70 backdrop-blur-lg rounded-full shadow-2xl border border-gray-200/50 px-4 py-3 hover:bg-white/80 transition-all duration-300">
                   <input
                     type="text"
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     onKeyDown={handleKeyPress}
                     placeholder="Ask RETS to do anything"
-                    className="flex-1 outline-none text-white placeholder-white/70 bg-transparent"
+                    className="flex-1 outline-none text-gray-900 placeholder-gray-500 bg-transparent"
                   />
                   <button
                     onClick={sendMessage}
                     disabled={loading || !message.trim()}
-                    className="w-8 h-8 bg-white/20 backdrop-blur-sm text-white rounded-full flex items-center justify-center hover:bg-white/30 disabled:opacity-50 ml-2 transition-all duration-200 border border-white/30"
+                    className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center hover:bg-blue-700 disabled:opacity-50 ml-2 transition-all duration-200"
                   >
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path d="M12 19V5M5 12l7-7 7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                   </button>
                 </div>
-                <div className="text-sm text-white/70 mt-2 text-center drop-shadow-sm">RETS.ai can make mistakes. Verify for accuracy.</div>
+                <div className="text-sm text-gray-600 mt-2 text-center">RETS.ai can make mistakes. Verify for accuracy.</div>
               </div>
             </div>
           )}
@@ -333,7 +325,7 @@ export default function HomePage() {
                   <div key={index} className="max-w-4xl mx-auto">
                     {msg.role === 'user' && (
                       <div className="flex justify-end mb-6">
-                        <div className="bg-white/20 backdrop-blur-lg text-white px-4 py-2 rounded-lg max-w-2xl border border-white/30 shadow-lg">
+                        <div className="bg-white/70 backdrop-blur-lg text-gray-900 px-4 py-2 rounded-lg max-w-2xl border border-gray-200/50 shadow-lg">
                           {msg.content}
                         </div>
                       </div>
@@ -349,7 +341,7 @@ export default function HomePage() {
                           </div>
                         )}
                         
-                        <div className="text-white drop-shadow-sm">{msg.content}</div>
+                        <div className="text-gray-900">{msg.content}</div>
                       </div>
                     )}
                   </div>
@@ -357,12 +349,12 @@ export default function HomePage() {
                 
                 {loading && (
                   <div className="flex justify-start mb-4 max-w-4xl mx-auto">
-                    <div className="bg-white/20 backdrop-blur-lg text-white px-4 py-2 rounded-lg border border-white/30 shadow-lg">
+                    <div className="bg-white/70 backdrop-blur-lg text-gray-900 px-4 py-2 rounded-lg border border-gray-200/50 shadow-lg">
                       <div className="flex items-center space-x-2">
                         <div className="flex space-x-1">
-                          <div className="w-2 h-2 bg-white/70 rounded-full animate-bounce"></div>
-                          <div className="w-2 h-2 bg-white/70 rounded-full animate-bounce delay-100"></div>
-                          <div className="w-2 h-2 bg-white/70 rounded-full animate-bounce delay-200"></div>
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-100"></div>
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-200"></div>
                         </div>
                         <span>Thinking...</span>
                       </div>
@@ -376,26 +368,19 @@ export default function HomePage() {
           {chatHistory.length > 0 && (
             <div className="fixed bottom-6 left-0 right-0 px-6 z-20">
               <div className="max-w-2xl mx-auto">
-                <div className="flex items-center bg-white/20 backdrop-blur-lg rounded-full shadow-2xl border border-white/30 px-4 py-3 hover:bg-white/25 transition-all duration-300">
-                  <div className="w-5 h-5 mr-3 flex items-center justify-center">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <rect x="3" y="11" width="18" height="10" rx="2" ry="2" stroke="white" strokeWidth="2" opacity="0.8"/>
-                      <circle cx="12" cy="16" r="1" fill="white" opacity="0.8"/>
-                      <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="white" strokeWidth="2" opacity="0.8"/>
-                    </svg>
-                  </div>
+                <div className="flex items-center bg-white/70 backdrop-blur-lg rounded-full shadow-2xl border border-gray-200/50 px-4 py-3 hover:bg-white/80 transition-all duration-300">
                   <input
                     type="text"
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     onKeyDown={handleKeyPress}
                     placeholder="Message RETS"
-                    className="flex-1 outline-none text-white placeholder-white/70 bg-transparent"
+                    className="flex-1 outline-none text-gray-900 placeholder-gray-500 bg-transparent"
                   />
                   <button
                     onClick={sendMessage}
                     disabled={loading || !message.trim()}
-                    className="w-8 h-8 bg-white/20 backdrop-blur-sm text-white rounded-full flex items-center justify-center hover:bg-white/30 disabled:opacity-50 ml-2 transition-all duration-200 border border-white/30"
+                    className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center hover:bg-blue-700 disabled:opacity-50 ml-2 transition-all duration-200"
                   >
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path d="M12 19V5M5 12l7-7 7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
