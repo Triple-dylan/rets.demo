@@ -89,64 +89,41 @@ export default function HomePage() {
     const newHistory = [...chatHistory, { role: 'user' as const, content: message }];
     setChatHistory(newHistory);
     
-    try {
-      // Call the actual API endpoint
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ messages: newHistory })
-      });
-      
-      if (!res.ok) {
-        throw new Error('API request failed');
-      }
-      
-      const apiResponse = await res.json();
-      
-      let response: Message;
-      
-      if (message.toLowerCase().includes('find') || message.toLowerCase().includes('properties') || message.toLowerCase().includes('seattle')) {
-        response = {
-          role: 'assistant',
-          content: 'I have completed the deal sourcing task and I\'m happy to assist with it. Is there anything else you need help with?',
-          type: 'properties',
-          data: mockProperties
-        };
-      } else if (message.toLowerCase().includes('underwriting') || message.toLowerCase().includes('1052')) {
-        response = {
-          role: 'assistant', 
-          content: 'The underwriting analysis task is complete. I\'m happy to assist with this. Is there anything else you need help with?',
-          type: 'underwriting',
-          data: { address: '1052 E Thomas St', location: 'Seattle WA 98102' }
-        };
-      } else if (message.toLowerCase().includes('loi')) {
-        response = {
-          role: 'assistant',
-          content: 'I\'m happy to have helped with the LOI generation. Is there anything else you need assistance with?',
-          type: 'loi',
-          data: { address: '1052 E Thomas St', location: 'Seattle WA 98102' }
-        };
-      } else {
-        response = {
-          role: 'assistant',
-          content: apiResponse.message || 'I\'m RETS AI, your real estate assistant. How can I help you?',
-          type: 'text'
-        };
-      }
-      
-      setChatHistory([...newHistory, response]);
-    } catch (error) {
-      console.error('API Error:', error);
-      const errorResponse: Message = {
+    // Simulate response delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    let response: Message;
+    
+    if (message.toLowerCase().includes('find') || message.toLowerCase().includes('properties') || message.toLowerCase().includes('seattle')) {
+      response = {
         role: 'assistant',
-        content: 'I apologize, but I\'m having trouble connecting right now. Please try again.',
+        content: 'I have completed the deal sourcing task and I\'m happy to assist with it. Is there anything else you need help with?',
+        type: 'properties',
+        data: mockProperties
+      };
+    } else if (message.toLowerCase().includes('underwriting') || message.toLowerCase().includes('1052')) {
+      response = {
+        role: 'assistant', 
+        content: 'The underwriting analysis task is complete. I\'m happy to assist with this. Is there anything else you need help with?',
+        type: 'underwriting',
+        data: { address: '1052 E Thomas St', location: 'Seattle WA 98102' }
+      };
+    } else if (message.toLowerCase().includes('loi')) {
+      response = {
+        role: 'assistant',
+        content: 'I\'m happy to have helped with the LOI generation. Is there anything else you need assistance with?',
+        type: 'loi',
+        data: { address: '1052 E Thomas St', location: 'Seattle WA 98102' }
+      };
+    } else {
+      response = {
+        role: 'assistant',
+        content: 'I\'m RETS AI, your real estate assistant. How can I help you?',
         type: 'text'
       };
-      setChatHistory([...newHistory, errorResponse]);
     }
     
+    setChatHistory([...newHistory, response]);
     setLoading(false);
     setMessage('');
   };
@@ -170,33 +147,8 @@ export default function HomePage() {
     };
     setChatHistory(prev => [...prev, userMessage]);
     
-    try {
-      // Call the intelligent underwriting API
-      const response = await fetch('/api/underwriting', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ property })
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to generate financial model');
-      }
-      
-      const financialModel = await response.json();
-      
-      const modelMessage: Message = {
-        role: 'assistant',
-        content: `**Financial Model Generated for ${property.address}**\n\n${financialModel.analysis}`,
-        type: 'underwriting',
-        data: financialModel
-      };
-      
-      setChatHistory(prev => [...prev, modelMessage]);
-      
-    } catch (error) {
-      console.error('Error generating financial model:', error);
+    // Generate financial model directly
+    await new Promise(resolve => setTimeout(resolve, 1500));
       
       // Enhanced fallback model
       const purchasePrice = parseInt(property.price.replace(/[$,]/g, ''));
@@ -227,15 +179,14 @@ export default function HomePage() {
         ]
       };
       
-      const fallbackMessage: Message = {
-        role: 'assistant',
-        content: `**Financial Model Generated for ${property.address}**\n\nAnalysis complete. This ${property.details.includes('unit') ? property.details.split('-')[0] + '-unit' : 'multifamily'} property shows strong fundamentals with a ${property.capRate} cap rate.\n\n**Key Highlights:**\n• NOI: $${noi.toLocaleString()}\n• Strong cash flow potential\n• Seattle market fundamentals support growth\n• Recommended for acquisition consideration`,
-        type: 'underwriting',
-        data: basicModelData
-      };
-      
-      setChatHistory(prev => [...prev, fallbackMessage]);
-    }
+    const fallbackMessage: Message = {
+      role: 'assistant',
+      content: `**Financial Model Generated for ${property.address}**\n\nAnalysis complete. This ${property.details.includes('unit') ? property.details.split('-')[0] + '-unit' : 'multifamily'} property shows strong fundamentals with a ${property.capRate} cap rate.\n\n**Key Highlights:**\n• NOI: $${noi.toLocaleString()}\n• Strong cash flow potential\n• Seattle market fundamentals support growth\n• Recommended for acquisition consideration`,
+      type: 'underwriting',
+      data: basicModelData
+    };
+    
+    setChatHistory(prev => [...prev, fallbackMessage]);
     
     setLoading(false);
   };
@@ -251,33 +202,8 @@ export default function HomePage() {
     };
     setChatHistory(prev => [...prev, userMessage]);
     
-    try {
-      // Call the intelligent OM generation API
-      const response = await fetch('/api/offering-memorandum', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ property })
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to generate offering memorandum');
-      }
-      
-      const offeringMemorandum = await response.json();
-      
-      const omMessage: Message = {
-        role: 'assistant',
-        content: `**Offering Memorandum Generated for ${property.address}**\n\n${offeringMemorandum.executiveSummary}`,
-        type: 'loi',
-        data: offeringMemorandum
-      };
-      
-      setChatHistory(prev => [...prev, omMessage]);
-      
-    } catch (error) {
-      console.error('Error generating offering memorandum:', error);
+    // Generate offering memorandum directly
+    await new Promise(resolve => setTimeout(resolve, 1500));
       
       // Enhanced fallback OM
       const units = property.details.includes('unit') ? parseInt(property.details.split('-')[0]) : 25;
@@ -303,15 +229,14 @@ export default function HomePage() {
         ]
       };
       
-      const fallbackMessage: Message = {
-        role: 'assistant',
-        content: `**Offering Memorandum Generated for ${property.address}**\n\n${fallbackOM.executiveSummary}\n\n**Investment Highlights:**\n${fallbackOM.investmentHighlights.map(h => `• ${h}`).join('\n')}\n\n**Financial Summary:**\n• Purchase Price: ${property.price}\n• Cap Rate: ${property.capRate}\n• Price per Unit: ${fallbackOM.financialHighlights.pricePerUnit}`,
-        type: 'loi',
-        data: fallbackOM
-      };
-      
-      setChatHistory(prev => [...prev, fallbackMessage]);
-    }
+    const fallbackMessage: Message = {
+      role: 'assistant',
+      content: `**Offering Memorandum Generated for ${property.address}**\n\n${fallbackOM.executiveSummary}\n\n**Investment Highlights:**\n${fallbackOM.investmentHighlights.map(h => `• ${h}`).join('\n')}\n\n**Financial Summary:**\n• Purchase Price: ${property.price}\n• Cap Rate: ${property.capRate}\n• Price per Unit: ${fallbackOM.financialHighlights.pricePerUnit}`,
+      type: 'loi',
+      data: fallbackOM
+    };
+    
+    setChatHistory(prev => [...prev, fallbackMessage]);
     
     setLoading(false);
   };
