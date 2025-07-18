@@ -1,6 +1,6 @@
-# RETS AI - Real Estate Investment Assistant
+# RETS AI - Real Estate processes neural layer.
 
-A modern real estate AI assistant built with Python backend and Next.js frontend for property search and investment analysis.
+A modern real estate AI agent built with Python backend and Next.js frontend for property search, workflow systems, and investment analysis.
 
 ## 🏗️ Architecture
 
