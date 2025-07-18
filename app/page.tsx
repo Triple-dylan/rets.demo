@@ -42,7 +42,7 @@ export default function HomePage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [workspaces, setWorkspaces] = useState([
     { id: 1, name: 'Seattle Properties', active: true },
-    { id: 2, name: 'Portland Market', active: false },
+    { id: 2, name: 'San Diego', active: false },
     { id: 3, name: 'Analysis Draft', active: false }
   ]);
   const [chatFocused, setChatFocused] = useState(false);
@@ -54,6 +54,16 @@ export default function HomePage() {
     })));
     setSidebarOpen(false);
     // In a real app, this would also change the context/data for the workspace
+  };
+
+  const handleNewWorkspace = () => {
+    const newId = Math.max(...workspaces.map(ws => ws.id)) + 1;
+    const newWorkspace = {
+      id: newId,
+      name: `Workspace ${newId}`,
+      active: false
+    };
+    setWorkspaces(prev => [...prev, newWorkspace]);
   };
 
   const mockProperties: Property[] = [
@@ -230,7 +240,7 @@ export default function HomePage() {
       
     const fallbackMessage: Message = {
       role: 'assistant',
-      content: `**Financial Model Generated for ${property.address}**\n\nAnalysis complete. This ${property.details.includes('unit') ? property.details.split('-')[0] + '-unit' : 'multifamily'} property shows strong fundamentals with a ${property.capRate} cap rate.\n\n**Key Highlights:**\n• NOI: $${noi.toLocaleString()}\n• Strong cash flow potential\n• Seattle market fundamentals support growth\n• Recommended for acquisition consideration\n\n📊 **Spreadsheet downloaded with detailed assumptions and 10-year projections**`,
+      content: `Financial model generated and downloaded for ${property.address}`,
       type: 'underwriting',
       data: modelData
     };
@@ -242,18 +252,18 @@ export default function HomePage() {
 
   const generateExcelFile = async (modelData: any) => {
     try {
-      // Create Excel workbook using client-side Excel generation
-      const workbookData = createFinancialModelWorkbook(modelData);
+      // Create CSV content that opens properly in Excel
+      const csvContent = generateCSVContent(modelData);
       
-      // Create blob and download
-      const blob = new Blob([workbookData], { 
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+      // Create blob with proper CSV mime type
+      const blob = new Blob([csvContent], { 
+        type: 'text/csv' 
       });
       
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `${modelData.address.replace(/[^a-zA-Z0-9]/g, '_')}_Financial_Model.xlsx`;
+      link.download = `${modelData.address.replace(/[^a-zA-Z0-9]/g, '_')}_Financial_Model.csv`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -263,44 +273,37 @@ export default function HomePage() {
     }
   };
 
-  const createFinancialModelWorkbook = (modelData: any) => {
-    // For now, create a CSV-like content that can be opened in Excel
-    // In a real implementation, you'd use a library like xlsx or exceljs
-    const csvContent = generateCSVContent(modelData);
-    return new TextEncoder().encode(csvContent);
-  };
-
   const generateCSVContent = (modelData: any) => {
     const { property, assumptions, projections } = modelData;
     
-    let csv = `REAL ESTATE FINANCIAL MODEL - ${property.address}\n\n`;
+    let csv = `"REAL ESTATE FINANCIAL MODEL - ${property.address}"\n\n`;
     
     // Property Information
-    csv += `PROPERTY INFORMATION\n`;
-    csv += `Address,${property.address}\n`;
-    csv += `Location,${property.location}\n`;
-    csv += `Price,${property.price}\n`;
-    csv += `Cap Rate,${property.capRate}\n`;
-    csv += `Property Type,${property.details}\n\n`;
+    csv += `"PROPERTY INFORMATION"\n`;
+    csv += `"Address","${property.address}"\n`;
+    csv += `"Location","${property.location}"\n`;
+    csv += `"Price","${property.price}"\n`;
+    csv += `"Cap Rate","${property.capRate}"\n`;
+    csv += `"Property Type","${property.details}"\n\n`;
     
     // Assumptions
-    csv += `FINANCIAL ASSUMPTIONS\n`;
-    csv += `Monthly Rent per Unit,$${assumptions.monthlyRentPerUnit}\n`;
-    csv += `Rent Growth Rate,${assumptions.rentGrowthRate}%\n`;
-    csv += `Vacancy Rate,${assumptions.vacancyRate}%\n`;
-    csv += `Management Fee,${assumptions.management}%\n`;
-    csv += `Maintenance,${assumptions.maintenance}%\n`;
-    csv += `Insurance,${assumptions.insurance}%\n`;
-    csv += `Property Taxes,${assumptions.propertyTaxes}%\n`;
-    csv += `Loan to Value,${assumptions.loanToValue}%\n`;
-    csv += `Interest Rate,${assumptions.interestRate}%\n`;
-    csv += `Loan Term,${assumptions.loanTerm} years\n\n`;
+    csv += `"FINANCIAL ASSUMPTIONS"\n`;
+    csv += `"Monthly Rent per Unit","$${assumptions.monthlyRentPerUnit}"\n`;
+    csv += `"Rent Growth Rate","${assumptions.rentGrowthRate}%"\n`;
+    csv += `"Vacancy Rate","${assumptions.vacancyRate}%"\n`;
+    csv += `"Management Fee","${assumptions.management}%"\n`;
+    csv += `"Maintenance","${assumptions.maintenance}%"\n`;
+    csv += `"Insurance","${assumptions.insurance}%"\n`;
+    csv += `"Property Taxes","${assumptions.propertyTaxes}%"\n`;
+    csv += `"Loan to Value","${assumptions.loanToValue}%"\n`;
+    csv += `"Interest Rate","${assumptions.interestRate}%"\n`;
+    csv += `"Loan Term","${assumptions.loanTerm} years"\n\n`;
     
     // 10-Year Projections
-    csv += `10-YEAR CASH FLOW PROJECTIONS\n`;
-    csv += `Year,Income,Expenses,NOI,Cash Flow\n`;
+    csv += `"10-YEAR CASH FLOW PROJECTIONS"\n`;
+    csv += `"Year","Income","Expenses","NOI","Cash Flow"\n`;
     projections.forEach((proj: any) => {
-      csv += `${proj.year},$${proj.income.toLocaleString()},$${proj.expenses.toLocaleString()},$${proj.noi.toLocaleString()},$${proj.cashFlow.toLocaleString()}\n`;
+      csv += `"${proj.year}","$${proj.income.toLocaleString()}","$${proj.expenses.toLocaleString()}","$${proj.noi.toLocaleString()}","$${proj.cashFlow.toLocaleString()}"\n`;
     });
     
     return csv;
@@ -436,6 +439,11 @@ export default function HomePage() {
         }`}></div>
       </button>
 
+      {/* Vertical line next to sidebar toggle */}
+      <div className={`fixed left-12 top-0 h-full w-px z-20 transition-colors duration-300 ${
+        darkMode ? 'bg-gray-700/50' : 'bg-gray-200/20'
+      }`}></div>
+
       <div className="relative z-10 min-h-screen">
         <header className={`border-b sticky top-0 z-20 transition-colors duration-300 ${
           darkMode 
@@ -479,12 +487,9 @@ export default function HomePage() {
                 : 'bg-white/95 border-gray-200/50'
             }`}>
               {/* Sidebar Header */}
-              <div className={`flex items-center justify-between p-4 border-b transition-colors duration-300 ${
+              <div className={`flex items-center justify-end p-4 border-b transition-colors duration-300 ${
                 darkMode ? 'border-gray-700/50' : 'border-gray-200/50'
               }`}>
-                <h2 className={`text-lg font-semibold transition-colors duration-300 ${
-                  darkMode ? 'text-gray-100' : 'text-gray-900'
-                }`}>Workspaces</h2>
                 <button
                   onClick={() => setSidebarOpen(false)}
                   className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors ${
@@ -533,11 +538,13 @@ export default function HomePage() {
                 <div className={`p-4 border-t transition-colors duration-300 ${
                   darkMode ? 'border-gray-700/50' : 'border-gray-200/50'
                 }`}>
-                  <button className={`w-full text-left p-3 rounded-lg transition-colors border-2 border-dashed ${
-                    darkMode 
-                      ? 'hover:bg-gray-700/50 text-gray-400 border-gray-600 hover:border-gray-500' 
-                      : 'hover:bg-gray-50 text-gray-600 border-gray-300 hover:border-gray-400'
-                  }`}>
+                  <button 
+                    onClick={handleNewWorkspace}
+                    className={`w-full text-left p-3 rounded-lg transition-colors border-2 border-dashed ${
+                      darkMode 
+                        ? 'hover:bg-gray-700/50 text-gray-400 border-gray-600 hover:border-gray-500' 
+                        : 'hover:bg-gray-50 text-gray-600 border-gray-300 hover:border-gray-400'
+                    }`}>
                     <div className="flex items-center space-x-3">
                       <div className={`w-6 h-6 rounded flex items-center justify-center transition-colors duration-300 ${
                         darkMode ? 'bg-gray-700' : 'bg-gray-100'
@@ -644,6 +651,70 @@ export default function HomePage() {
                             {msg.data.map((property: Property) => (
                               <PropertyCard key={property.id} property={property} />
                             ))}
+                          </div>
+                        )}
+                        
+                        {msg.type === 'underwriting' && msg.data && (
+                          <div className={`border rounded-lg p-6 mb-6 transition-colors duration-300 ${
+                            darkMode 
+                              ? 'bg-gray-800 border-gray-700' 
+                              : 'bg-gray-50 border-gray-200'
+                          }`}>
+                            <div className="flex items-center justify-between mb-4">
+                              <h3 className={`text-lg font-semibold transition-colors duration-300 ${
+                                darkMode ? 'text-gray-100' : 'text-gray-900'
+                              }`}>
+                                Financial Model - {msg.data.address}
+                              </h3>
+                              <div className={`text-sm px-3 py-1 rounded-full transition-colors duration-300 ${
+                                darkMode 
+                                  ? 'bg-green-900/50 text-green-300' 
+                                  : 'bg-green-100 text-green-700'
+                              }`}>
+                                Downloaded
+                              </div>
+                            </div>
+                            
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                              <div>
+                                <div className={`text-sm transition-colors duration-300 ${
+                                  darkMode ? 'text-gray-400' : 'text-gray-600'
+                                }`}>Purchase Price</div>
+                                <div className={`text-lg font-bold transition-colors duration-300 ${
+                                  darkMode ? 'text-gray-100' : 'text-gray-900'
+                                }`}>{msg.data.price}</div>
+                              </div>
+                              <div>
+                                <div className={`text-sm transition-colors duration-300 ${
+                                  darkMode ? 'text-gray-400' : 'text-gray-600'
+                                }`}>Cap Rate</div>
+                                <div className={`text-lg font-bold transition-colors duration-300 ${
+                                  darkMode ? 'text-gray-100' : 'text-gray-900'
+                                }`}>{msg.data.capRate}</div>
+                              </div>
+                              <div>
+                                <div className={`text-sm transition-colors duration-300 ${
+                                  darkMode ? 'text-gray-400' : 'text-gray-600'
+                                }`}>NOI</div>
+                                <div className={`text-lg font-bold transition-colors duration-300 ${
+                                  darkMode ? 'text-gray-100' : 'text-gray-900'
+                                }`}>${msg.data.noi.toLocaleString()}</div>
+                              </div>
+                              <div>
+                                <div className={`text-sm transition-colors duration-300 ${
+                                  darkMode ? 'text-gray-400' : 'text-gray-600'
+                                }`}>Cash Flow</div>
+                                <div className={`text-lg font-bold transition-colors duration-300 ${
+                                  darkMode ? 'text-gray-100' : 'text-gray-900'
+                                }`}>${msg.data.cashFlow.toLocaleString()}</div>
+                              </div>
+                            </div>
+
+                            <div className={`text-sm transition-colors duration-300 ${
+                              darkMode ? 'text-gray-400' : 'text-gray-600'
+                            }`}>
+                              Detailed financial model with 10-year projections and market assumptions has been downloaded to your computer.
+                            </div>
                           </div>
                         )}
                         
