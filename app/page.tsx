@@ -388,46 +388,30 @@ export default function HomePage() {
 
   return (
     <div className={`min-h-screen relative overflow-hidden transition-colors duration-300 ${
-      darkMode ? 'bg-gray-900' : 'bg-gray-50'
+      darkMode ? 'bg-gray-900' : 'bg-white'
     }`}>
       <div className={`fixed inset-0 transition-colors duration-300 ${
         darkMode 
           ? 'bg-gradient-to-br from-gray-900 to-gray-800' 
-          : 'bg-gradient-to-br from-slate-50 to-blue-50'
+          : 'bg-white'
       }`}>
         <div className={`absolute inset-0 transition-colors duration-300 ${
           darkMode
             ? 'bg-gradient-to-tr from-gray-800/95 via-gray-700/30 to-gray-800/90'
-            : 'bg-gradient-to-tr from-white/95 via-blue-50/30 to-white/90'
+            : 'bg-white'
         }`}></div>
         
-        {/* Floating glass orbs with more realistic liquid glass effect */}
-        <div className={`absolute top-1/4 left-1/4 w-96 h-96 rounded-full blur-2xl animate-float shadow-2xl transition-colors duration-300 ${
-          darkMode 
-            ? 'bg-gradient-to-br from-gray-700/60 via-gray-600/40 to-gray-700/70' 
-            : 'bg-gradient-to-br from-white/60 via-blue-100/40 to-white/70'
-        }`}></div>
-        <div className={`absolute bottom-1/3 right-1/4 w-80 h-80 rounded-full blur-2xl animate-float-delayed shadow-xl transition-colors duration-300 ${
-          darkMode
-            ? 'bg-gradient-to-tl from-gray-600/50 via-gray-700/60 to-gray-600/40'
-            : 'bg-gradient-to-tl from-blue-50/50 via-white/60 to-blue-100/40'
-        }`}></div>
-        <div className={`absolute top-2/3 left-1/2 w-72 h-72 rounded-full blur-xl animate-float-slow shadow-lg transition-colors duration-300 ${
-          darkMode
-            ? 'bg-gradient-to-br from-gray-700/70 via-gray-800/30 to-gray-700/60'
-            : 'bg-gradient-to-br from-white/70 via-slate-100/30 to-white/60'
-        }`}></div>
-        
-        {/* Additional smaller glass particles */}
-        <div className={`absolute top-1/6 right-1/3 w-32 h-32 rounded-full blur-lg animate-drift transition-colors duration-300 ${
-          darkMode ? 'bg-gray-700/40' : 'bg-white/40'
-        }`}></div>
-        <div className={`absolute bottom-1/6 left-1/3 w-24 h-24 rounded-full blur-md animate-drift-slow transition-colors duration-300 ${
-          darkMode ? 'bg-gray-600/50' : 'bg-blue-50/50'
-        }`}></div>
-        
-        {/* Subtle grid pattern overlay */}
-        <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
+        {/* Keep floating effects only for dark mode */}
+        {darkMode && (
+          <>
+            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-br from-gray-700/60 via-gray-600/40 to-gray-700/70 rounded-full blur-2xl animate-float shadow-2xl"></div>
+            <div className="absolute bottom-1/3 right-1/4 w-80 h-80 bg-gradient-to-tl from-gray-600/50 via-gray-700/60 to-gray-600/40 rounded-full blur-2xl animate-float-delayed shadow-xl"></div>
+            <div className="absolute top-2/3 left-1/2 w-72 h-72 bg-gradient-to-br from-gray-700/70 via-gray-800/30 to-gray-700/60 rounded-full blur-xl animate-float-slow shadow-lg"></div>
+            <div className="absolute top-1/6 right-1/3 w-32 h-32 bg-gray-700/40 rounded-full blur-lg animate-drift"></div>
+            <div className="absolute bottom-1/6 left-1/3 w-24 h-24 bg-gray-600/50 rounded-full blur-md animate-drift-slow"></div>
+            <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
+          </>
+        )}
       </div>
       
       {/* Left sidebar trigger bar */}
@@ -454,10 +438,10 @@ export default function HomePage() {
       </button>
 
       <div className="relative z-10 min-h-screen">
-        <header className={`backdrop-blur-md border-b sticky top-0 z-20 transition-colors duration-300 ${
+        <header className={`border-b sticky top-0 z-20 transition-colors duration-300 ${
           darkMode 
-            ? 'bg-gray-800/60 border-gray-700/50' 
-            : 'bg-white/60 border-gray-200/50'
+            ? 'bg-gray-800 border-gray-700/50 backdrop-blur-md' 
+            : 'bg-white border-gray-200/20'
         }`}>
           <div className="max-w-7xl mx-auto px-6 py-4">
             <div className="flex justify-between items-center">
@@ -469,7 +453,7 @@ export default function HomePage() {
                   darkMode 
                     ? 'text-gray-400 bg-gray-700/80' 
                     : 'text-gray-600 bg-gray-100/80'
-                }`}>v3</span>
+                }`}>o3</span>
               </div>
               <button 
                 onClick={toggleDarkMode}
@@ -591,15 +575,21 @@ export default function HomePage() {
                     Who needs manual processes? Ask RETS instead.
                   </h1>
                 </div>
-                <div className={`flex items-center backdrop-blur-lg rounded-full shadow-2xl border px-4 py-3 transition-all duration-300 ${
+                <div className={`flex items-center rounded-full px-4 py-3 transition-all duration-300 ${
                   darkMode 
                     ? chatFocused 
-                      ? 'bg-gray-800/90 border-blue-400 ring-2 ring-blue-400/50' 
-                      : 'bg-gray-800/70 border-gray-600/50 hover:bg-gray-800/80'
+                      ? 'bg-gray-800 border border-blue-400 ring-2 ring-blue-400/50' 
+                      : 'bg-gray-800 border border-gray-600 hover:bg-gray-700'
                     : chatFocused 
-                      ? 'border-blue-400 bg-white/90 ring-2 ring-blue-200/50' 
-                      : 'border-gray-200/50 hover:bg-white/80 bg-white/70'
+                      ? 'bg-gray-100 border border-blue-400 ring-2 ring-blue-200/50' 
+                      : 'bg-gray-100 border border-gray-200 hover:bg-gray-50'
                 }`}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={`mr-3 transition-colors duration-300 ${
+                    darkMode ? 'text-gray-400' : 'text-gray-500'
+                  }`}>
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <polyline points="14,2 14,8 20,8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
                   <input
                     type="text"
                     value={message}
@@ -638,7 +628,11 @@ export default function HomePage() {
                   <div key={index} className="max-w-4xl mx-auto">
                     {msg.role === 'user' && (
                       <div className="flex justify-end mb-6">
-                        <div className="bg-white/70 backdrop-blur-lg text-gray-900 px-4 py-2 rounded-lg max-w-2xl border border-gray-200/50 shadow-lg">
+                        <div className={`px-4 py-2 rounded-lg max-w-2xl border transition-colors duration-300 ${
+                          darkMode 
+                            ? 'bg-gray-800 text-gray-100 border-gray-700' 
+                            : 'bg-gray-100 text-gray-900 border-gray-200'
+                        }`}>
                           {msg.content}
                         </div>
                       </div>
@@ -654,7 +648,9 @@ export default function HomePage() {
                           </div>
                         )}
                         
-                        <div className="text-gray-900">{msg.content}</div>
+                        <div className={`transition-colors duration-300 ${
+                          darkMode ? 'text-gray-100' : 'text-gray-900'
+                        }`}>{msg.content}</div>
                       </div>
                     )}
                   </div>
@@ -662,7 +658,11 @@ export default function HomePage() {
                 
                 {loading && (
                   <div className="flex justify-start mb-4 max-w-4xl mx-auto">
-                    <div className="bg-white/70 backdrop-blur-lg text-gray-900 px-4 py-2 rounded-lg border border-gray-200/50 shadow-lg">
+                    <div className={`px-4 py-2 rounded-lg border transition-colors duration-300 ${
+                      darkMode 
+                        ? 'bg-gray-800 text-gray-100 border-gray-700' 
+                        : 'bg-gray-100 text-gray-900 border-gray-200'
+                    }`}>
                       <div className="flex items-center space-x-2">
                         <div className="flex space-x-1">
                           <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
@@ -681,15 +681,21 @@ export default function HomePage() {
           {chatHistory.length > 0 && (
             <div className="fixed bottom-6 left-0 right-0 px-6 z-20">
               <div className="max-w-2xl mx-auto">
-                <div className={`flex items-center backdrop-blur-lg rounded-full shadow-2xl border px-4 py-3 transition-all duration-300 ${
+                <div className={`flex items-center rounded-full px-4 py-3 transition-all duration-300 ${
                   darkMode 
                     ? chatFocused 
-                      ? 'bg-gray-800/90 border-blue-400 ring-2 ring-blue-400/50' 
-                      : 'bg-gray-800/70 border-gray-600/50 hover:bg-gray-800/80'
+                      ? 'bg-gray-800 border border-blue-400 ring-2 ring-blue-400/50' 
+                      : 'bg-gray-800 border border-gray-600 hover:bg-gray-700'
                     : chatFocused 
-                      ? 'border-blue-400 bg-white/90 ring-2 ring-blue-200/50' 
-                      : 'border-gray-200/50 hover:bg-white/80 bg-white/70'
+                      ? 'bg-gray-100 border border-blue-400 ring-2 ring-blue-200/50' 
+                      : 'bg-gray-100 border border-gray-200 hover:bg-gray-50'
                 }`}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={`mr-3 transition-colors duration-300 ${
+                    darkMode ? 'text-gray-400' : 'text-gray-500'
+                  }`}>
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <polyline points="14,2 14,8 20,8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
                   <input
                     type="text"
                     value={message}
